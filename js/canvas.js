@@ -383,6 +383,20 @@ var polWall = fabric.util.createClass(fabric.Polygon,{
   lineWidths: null, //Define separate width for each line
   lineColors: null, //Define separate color for each line
   lineArc: null,
+  initialize: function(points, options, pointWidths, pointColors) {
+    options = options || { };
+    this.points = points || [ ];
+    this.pointWidths = pointWidths || [ ];
+    this.pointColors = pointColors || [ ];
+    this.callSuper('initialize', options);
+    this._calcDimensions();
+    if (!('top' in options)) {
+      this.top = this.minY;
+    }
+    if (!('left' in options)) {
+      this.left = this.minX;
+    }
+  },
   _render: function(ctx) {
     if (!this.commonRender(ctx)) {
       return;
