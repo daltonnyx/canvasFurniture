@@ -219,7 +219,7 @@ jQuery(document).ready(function($){
 
   //Setting wall
   var wallPoints = [{x:10,y:10},{x:200,y:10},{x:200,y:150},{x:400,y:150},{x:400,y:300},{x:10,y:300}];
-  var polWall = new fabric.Polygon(wallPoints,{
+  var polWall = new LiPolygon(wallPoints,{
     left: 0,
     top:0,
     strokeWidth: 10,
@@ -231,7 +231,7 @@ jQuery(document).ready(function($){
     lockMovementY: true,
     perPixelTargetFind: true, // I love this part
     padding: 4294967295 // get the fuck out border
-   });
+  });
  canvas.centerObject(polWall);
  canvas.add(polWall);
   var getDistance = function(p0,p1,p2){
@@ -375,66 +375,6 @@ jQuery(document).ready(function($){
       jQuery(this).parent(".wall-control").find("#delete-cor").css("display","block");
     }
   });
-});
-
-//Custom Polygon
-var polWall = fabric.util.createClass(fabric.Polygon,{
-  type: 'liPolygon',
-  lineWidths: null, //Define separate width for each line
-  lineColors: null, //Define separate color for each line
-  lineArc: null,
-  initialize: function(points, options, pointWidths, pointColors) {
-    options = options || { };
-    this.points = points || [ ];
-    this.pointWidths = pointWidths || [ ];
-    this.pointColors = pointColors || [ ];
-    this.callSuper('initialize', options);
-    this._calcDimensions();
-    if (!('top' in options)) {
-      this.top = this.minY;
-    }
-    if (!('left' in options)) {
-      this.left = this.minX;
-    }
-  },
-  _render: function(ctx) {
-    if (!this.commonRender(ctx)) {
-      return;
-    }
-    this._renderFill(ctx);
-    if (this.stroke || this.strokeDashArray) {
-      ctx.closePath();
-      this._renderStroke(ctx);
-    }
-  },
-  /**
-   * @private
-   * @param {CanvasRenderingContext2D} ctx Context to render on
-   */
-  commonRender: function(ctx) {
-    var point, len = this.points.length;
-
-    if (!len || isNaN(this.points[len - 1].y)) {
-      // do not draw if no points or odd points
-      // NaN comes from parseFloat of a empty string in parser
-      return false;
-    }
-    ctx.beginPath();
-
-    if (this._applyPointOffset) {
-      if (!(this.group && this.group.type === 'path-group')) {
-        this._applyPointOffset();
-      }
-      this._applyPointOffset = null;
-    }
-
-    ctx.moveTo(this.points[0].x, this.points[0].y);
-    for (var i = 0; i < len; i++) {
-      point = this.points[i];
-      ctx.lineTo(point.x, point.y);
-    }
-    return true;
-  },
 });
 var zoom_change = function(e) {
   var sl = e.target;
