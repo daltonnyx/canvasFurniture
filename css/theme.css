@@ -1,0 +1,5 @@
+.header {padding: 15px;background-color: #2BA3D4;}
+.header .page-title {font-family: Arial;font-size: 24px;color:#fff;margin-bottom: 0;}
+.wall-control {background-color:#b1b1b1;padding:15px;}
+#sidebar {background-color: #c1c1c1;}
+#sidebar > * {padding:15px;}
