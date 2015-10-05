@@ -37,12 +37,12 @@
 			<img src="draw.svg" data-json="draw.svg" class="svg-item" width="50px;" draggable="true" />
     </div>
     <div class="control-container">
-      <div class="zoom uk-vertical-align ">
+      <div class="zoom uk-vertical-align">
         <span class="uk-vertical-align-middle">Zoom: </span>
         <input type="range" min="10" max="500" step="10" class="zoom-slider uk-form-width-small uk-vertical-align-middle" value="100" name="zoom_slider" oninput="zoom_change(event)" />
         <input type="text" name="zoom_value" class="zoom-value uk-form-width-mini uk-vertical-align-middle" value="100" />
       </div>
-			<div class="object-control object-hide">
+			<div>
 				<div class="control-container">
 					<a id="saveJSON" href="#">Save</a>
 					<a id="loadJSON" href="#">Load</a>
@@ -73,7 +73,24 @@
 			<a id="add-cor" class="hidden uk-button uk-button-primary" href="#">add</a>
 			<a id="delete-cor" class="hidden uk-button uk-button-danger" href="#">delete</a>
 		</div>
-  </div>
+		<div class="control-container object-control uk-border-rounded uk-grid-collapse" style="display:none;">
+			<div class="control-dimession uk-width-1-2">
+				<span>width: </span><input type="number" class="uk-form-width-small" name="_w" id="_w" />
+				<span>height: </span><input type="number" name="_h" id="_h" class="uk-form-width-small" />
+			</div>
+			<div class="control-button uk-width-1-2">
+				<a href="#" class="uk-button button-clone" id="button-clone"></a>
+				<a href="#" class="uk-button button-remove" id="button-remove"></a>
+				<a href="#" class="uk-button button-rotate-left" id="button-rotate-left"></a>
+				<a href="#" class="uk-button button-rotate-right" id="button-rotate-right"></a>
+				<div class="uk-button button-color" id="button-color">
+					<span data-color="FF0000" class="color-hex" style="background-color:#FF0000;"></span>
+					<span data-color="00A1FF" class="color-hex" style="background-color:#00A1FF;"></span>
+					<span data-color="E900FF" class="color-hex" style="background-color:#E900FF;"></span>
+				</div>
+			</div>
+		</div>
+	</div>
 </section>
 <div class="build-log" style="height:150px;overflow:auto;">
 <p class="note" style="font-family:Monospace;font-style:italic;">update 28/09-23:16 Hoàn thành zoom control và pan control</p>

@@ -1,5 +1,13 @@
 .header {padding: 15px;background-color: #2BA3D4;}
 .header .page-title {font-family: Arial;font-size: 24px;color:#fff;margin-bottom: 0;}
-.wall-control {background-color:#b1b1b1;padding:15px;}
+.wall-control,.object-control {background-color:#b1b1b1;padding:15px;}
 #sidebar {background-color: #c1c1c1;}
 #sidebar > * {padding:15px;}
+.object-control {width:300px;}
+.object-control > div {float:left;}
+.object-control .control-button div span {width:30px;height:30px;vertical-align: middle;display:inline-block;}
+.object-control .control-button div.button-color {padding:5px 12px;}
+.object-control .button-clone {background:url('../clone.png') left top / 100% no-repeat transparent;padding:0 15px;}
+.object-control .button-remove {background:url('../remove.png') left top / 100% no-repeat transparent;padding:0 15px;}
+.object-control .button-rotate-left {background:url('../rotateleft.png') left top / 100% no-repeat transparent;padding:0 15px;}
+.object-control .button-rotate-right {background:url('../rotateright.png') left top / 100% no-repeat transparent;padding:0 15px;}

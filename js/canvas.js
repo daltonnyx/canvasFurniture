@@ -139,36 +139,54 @@ jQuery(document).ready(function($){
     //If pointer still in point area then load control
     if(this.findTarget(e.e) == polWall){
       e = e.e;
-      var f = canvas.getPointer(e);
-      var c = onCorner(f,polWall);
-      if(c != -1){
+      loadWallControl(e);
+    }
+    else if(typeof(this.findTarget(e.e)) != 'undefined')
+    {
+      e = e.e;
+      loadObjectControl(e);
+    }
+
+  });
+  var loadWallControl = function(e){//Load Wall control
+    var f = canvas.getPointer(e);
+    var c = onCorner(f,polWall);
+    if(c != -1){
+      var control = jQuery(".wall-control");
+      var p = polWall.points[c];
+      control.css({"display":"block","position":"absolute","left":f.x - 100 + "px","top":f.y - 50 + "px"});
+      control.find("#_i").val(c);
+      control.find("#_x").val(f.x);
+      control.find("#_y").val(f.y);
+      control.find("#delete-cor").css("display","block");
+      control.find("#add-cor").css("display","none");
+      return;
+    }
+    else
+    {
+      var l = onLineWall(f,polWall);
+      if(l != -1)
+      {
         var control = jQuery(".wall-control");
-        var p = polWall.points[c];
         control.css({"display":"block","position":"absolute","left":f.x - 100 + "px","top":f.y - 50 + "px"});
-        control.find("#_i").val(c);
+        control.find("#_i").val(l);
         control.find("#_x").val(f.x);
         control.find("#_y").val(f.y);
-        control.find("#delete-cor").css("display","block");
-        control.find("#add-cor").css("display","none");
+        control.find("#add-cor").css("display","block");
+        control.find("#delete-cor").css("display","none");
         return;
       }
-      else
-      {
-        var l = onLineWall(f,polWall);
-        if(l != -1)
-        {
-          var control = jQuery(".wall-control");
-          control.css({"display":"block","position":"absolute","left":f.x - 100 + "px","top":f.y - 50 + "px"});
-          control.find("#_i").val(l);
-          control.find("#_x").val(f.x);
-          control.find("#_y").val(f.y);
-          control.find("#add-cor").css("display","block");
-          control.find("#delete-cor").css("display","none");
-          return;
-        }
-      }
     }
-  });
+  };
+  var loadObjectControl = function(e){
+    var obj = canvas.findTarget(e);
+    var control = jQuery(".object-control");
+    var f = canvas.getPointer(e);
+    control.css({"display":"block","position":"absolute","left":obj.left - (control.width()) + "px","top":obj.top - 50 + "px"});
+    control.find("#_w").val(obj.getWidth());
+    control.find("#_h").val(obj.getHeight());
+
+  }
   var fx,fy;
   canvas.on("mouse:down",function(e){
     e = e.e; //Replace event object with originalEvent
@@ -225,7 +243,6 @@ jQuery(document).ready(function($){
     strokeWidth: 10,
     stroke: "#000000",
     strokeLineCap: "square",
-    strokeLineJoin: "round",
     fill: "#f1f1f1",
     hasControls: true,
     hasBorders: false,
@@ -233,7 +250,7 @@ jQuery(document).ready(function($){
     lockMovementY: true,
     perPixelTargetFind: true, // I love this part
     padding: 4294967295 // get the fuck out border
-  },[10,10,5,3,8,8]);
+  },[10,5,10,5,10,5]);
  canvas.centerObject(polWall);
  canvas.add(polWall);
   var getDistance = function(p0,p1,p2){
@@ -274,6 +291,7 @@ jQuery(document).ready(function($){
   var isChangeCorner = -1;
   canvas.on("mouse:down",function(e) { //Start change Wall
     jQuery(".wall-control").css("display","none");
+    jQuery(".object-control").css("display","none");
     if(this.findTarget(e.e) == polWall)
     {
       e = e.e;
@@ -370,6 +388,8 @@ jQuery(document).ready(function($){
       var px = jQuery(this).parent(".wall-control").find("#_x").val();
       var py = jQuery(this).parent(".wall-control").find("#_y").val();
       var s = polWall.toLocalPoint({x:px,y:py},'center','center');
+      var lineX = polWall.lineWidths[idx];
+      polWall.lineWidths.splice(idx + 1,0,lineX);
       polWall.points.splice(idx + 1,0,s);
       canvas.renderAll();
       jQuery(this).parent(".wall-control").find("#_i").val(idx + 1);
