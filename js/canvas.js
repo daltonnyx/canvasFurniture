@@ -224,6 +224,8 @@ jQuery(document).ready(function($){
     top:0,
     strokeWidth: 10,
     stroke: "#000000",
+    strokeLineCap: "square",
+    strokeLineJoin: "round",
     fill: "#f1f1f1",
     hasControls: true,
     hasBorders: false,
@@ -231,7 +233,7 @@ jQuery(document).ready(function($){
     lockMovementY: true,
     perPixelTargetFind: true, // I love this part
     padding: 4294967295 // get the fuck out border
-  });
+  },[10,10,5,3,8,8]);
  canvas.centerObject(polWall);
  canvas.add(polWall);
   var getDistance = function(p0,p1,p2){
