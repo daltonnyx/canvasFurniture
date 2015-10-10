@@ -94,6 +94,7 @@ jQuery(document).ready(function($){
     {
       fabric.loadSVGFromURL(src,function(objects,options){
         var obj = fabric.util.groupSVGElements(objects,options);
+        obj["pathToFill"] = []; //set pathToFill property
         obj.scale(srcW / obj.width);
         obj.set({
           left: canvas.getPointer(e).x - centerX,
@@ -107,7 +108,7 @@ jQuery(document).ready(function($){
         {
           if(obj.paths[i].fill == "")
           {
-            obj.paths[i].setFill("rgb(255,128,128)");
+            obj["pathToFill"].push(i);
           }
         }
         canvas.add(obj);
@@ -127,15 +128,11 @@ jQuery(document).ready(function($){
   // Pans control
   var isHold = false,isMoveObject = false;
   canvas.on("mouse:up",function(e){//Mouse up event
-    // Reset check state
-    if(isHold)
+    // Reset check state - No need to check condition
       isHold = false;
-    if(isMoveObject)
       isMoveObject = false;
-    if(isChangeCorner != -1)
       isChangeCorner = -1;
-    if(isChangeWall != -1)
-        isChangeWall = -1;
+      isChangeWall = -1;
     //If pointer still in point area then load control
     if(this.findTarget(e.e) == polWall){
       e = e.e;
@@ -178,11 +175,22 @@ jQuery(document).ready(function($){
       }
     }
   };
-  var loadObjectControl = function(e){
+  var loadObjectControl = function(e){ //Load Object control
     var obj = canvas.findTarget(e);
     var control = jQuery(".object-control");
     var f = canvas.getPointer(e);
     control.css({"display":"block","position":"absolute","left":obj.left - (control.width()) + "px","top":obj.top - 50 + "px"});
+    if(canvas._activeGroup != null) //Disable width, height and color control when multiple objects is selected
+    {
+      control.find(".control-dimession").css("display","none");
+      control.find("#button-color").css("display","none");
+      return;
+    }
+    control.find(".control-dimession").css("display","inline-block");
+    if(obj["pathToFill"].length > 0)
+      control.find("#button-color").css("display","inline-block");
+    else
+      control.find("#button-color").css("display","none");
     control.find("#_w").val(obj.getWidth());
     control.find("#_h").val(obj.getHeight());
 
@@ -195,7 +203,8 @@ jQuery(document).ready(function($){
       isMoveObject = true;
       return;
     }
-    isHold = true;
+    if(charCode == 17)
+      isHold = true;
     fx = e.offsetX;
     fy = e.offsetY;
   });
@@ -208,24 +217,21 @@ jQuery(document).ready(function($){
     charCode = null;
   }
 
-  canvas.on("mouse:move",function(e){
-
+  canvas.on("mouse:move",function(e){ // Use as less function as you can
     if(isMoveObject == true) //Update object when mouse close to edge
     {
         e = e.e;
         if(e.offsetX < 10)
           canvas.relativePan({x: 15, y:0});
+        else if(e.offsetX > canvas.getWidth() - 10)
+            canvas.relativePan({x: -15, y:0});
         if(e.offsetY < 10)
           canvas.relativePan({x: 0, y:15});
-        if(e.offsetX > canvas.getWidth() - 10)
-          canvas.relativePan({x: -15, y:0});
-        if(e.offsetY > canvas.getHeight() - 10)
+        else if(e.offsetY > canvas.getHeight() - 10)
           canvas.relativePan({x:0,y:-15});
         return;
     }
     if(isHold == false)
-      return;
-    if(charCode != 17)
       return;
     e = e.e;
     var moX = e.offsetX - fx;
@@ -343,9 +349,17 @@ jQuery(document).ready(function($){
     }
   });
   canvas.on("object:selected",function(e){ // Remove the Wall from selected object
+    cloneOffset = 10;
     if(canvas._activeGroup == null)
       return;
     canvas._activeGroup.removeWithUpdate(polWall);
+    var control = jQuery(".object-control");
+    control.css({"display":"block","position":"absolute","left":canvas._activeGroup.left - (control.width()) + "px","top":canvas._activeGroup.top - 50 + "px"});
+    control.find(".control-dimession").css("display","none");
+    control.find("#button-color").css("display","none");
+    control.find("#_w").val("");
+    control.find("#_h").val("");
+
   });
   //Save
   jQuery("#saveJSON").click(function(e){
@@ -369,17 +383,19 @@ jQuery(document).ready(function($){
   });
 
   //Control part
-  jQuery(document).on("click",".wall-control #delete-cor",function(e){
+  var cloneOffset = 10;
+  jQuery(document).on("click",".wall-control #delete-cor",function(e){ //Delete Wall point
     e.preventDefault();
     var idx = jQuery(this).parent(".wall-control").find("#_i").val();
     if(idx != 'undefined')
     {
       polWall.points.splice(idx,1);
+      polWall.lineWidths.splice(idx,1);
       jQuery(this).parent(".wall-control").css("display","none");
       canvas.renderAll();
     }
   });
-  jQuery(document).on("click",".wall-control #add-cor",function(e){
+  jQuery(document).on("click",".wall-control #add-cor",function(e){ //Add Wall point
     e.preventDefault();
     var idx = jQuery(this).parent(".wall-control").find("#_i").val();
     idx = parseInt(idx);
@@ -396,6 +412,55 @@ jQuery(document).ready(function($){
       jQuery(this).css("display","none");
       jQuery(this).parent(".wall-control").find("#delete-cor").css("display","block");
     }
+  });
+  jQuery(document).on("click",".object-control #button-clone",function(e){ // Clone objects
+    e.preventDefault();
+    if(canvas._activeGroup != null) //For group
+    {
+        return;
+    }
+    var c = canvas.getActiveObject();
+    var cC = fabric.util.object.clone(c);
+    cC.set({left: c.left + cloneOffset,top: c.top + cloneOffset});
+    canvas.add(cC);
+    cloneOffset += 10;
+  });
+  jQuery(document).on("click",".object-control #button-remove",function(e){ // Object remove
+    e.preventDefault();
+    if(canvas._activeGroup != null) // For group
+    {
+        for(var i = 0;i < canvas._activeGroup._objects.length;i++)
+        {
+          canvas.remove(canvas._activeGroup._objects[i]);
+        }
+        canvas.remove(canvas._activeGroup._objects[0]); //Remove last object
+        jQuery(this).closest(".object-control").css("display","none");
+        canvas.discardActiveGroup(); // Remove control border
+        canvas.discardActiveObject(); // Need both discard
+        //canvas.renderAll();
+        return;
+    }
+    var cR = canvas.getActiveObject();
+    canvas.remove(cR);
+    //cloneOffset += 10;
+    jQuery(this).closest(".object-control").css("display","none");
+  });
+  jQuery(document).on("click",".object-control .color-hex",function(){ //Color-change
+    var hexCode = "#"+jQuery(this).data("color");
+    if(canvas._activeGroup != null) //For group
+    {
+        return;
+    }
+    var c = canvas.getActiveObject();
+    if(c["pathToFill"].length > 0)
+    {
+      for(var i = 0; i < c["pathToFill"].length;i++)
+      {
+        var j = c["pathToFill"][i];
+        c.paths[j].setFill(hexCode);
+      }
+    }
+    c.render(canvas.getContext());
   });
 });
 var zoom_change = function(e) {
