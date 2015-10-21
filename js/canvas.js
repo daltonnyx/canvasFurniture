@@ -31,7 +31,8 @@ jQuery(document).ready(function($){
     if(p.x < cW && p.y > cH)
         return 4;
     return 0;
-  }
+  };
+
   var getEndPoint = function(obj,c) { //Find nearest point to canvas border
     var maxX,maxY,minX,minY;
       maxX = minX = obj.oCoords.tl.x;
@@ -64,11 +65,13 @@ jQuery(document).ready(function($){
       default :
         return {};break;
     }
-  }
+  };
+
   var getO = function(o,c){ // Get offset between object base point and end point
     var e = getEndPoint(o,c);
     return  {x:Math.abs(o.left - e.x),y:Math.abs(o.top - e.y)};
-  }
+  };
+
   //Get SVG file to import
   $(document).on("mousedown",".svg-item",function(event){
     isDragable = true;
@@ -100,7 +103,8 @@ jQuery(document).ready(function($){
     {
       fabric.loadSVGFromURL(src,function(objects,options){
         var obj = fabric.util.groupSVGElements(objects,options);
-        obj["pathToFill"] = []; //set pathToFill property
+        obj.pathToFill = []; //set pathToFill property
+        obj.srcSVG = src;
         obj.scale(srcW / obj.width);
         obj.set({
           left: canvas.getPointer(e).x - centerX,
@@ -114,7 +118,7 @@ jQuery(document).ready(function($){
         {
           if(obj.paths[i].fill == "")
           {
-            obj["pathToFill"].push(i);
+            obj.pathToFill.push(i);
           }
         }
         canvas.add(obj);
@@ -122,6 +126,7 @@ jQuery(document).ready(function($){
       isDragable = false;
     }
   });
+
   var z = 1;
   //Zoom control
   var zoom = function(){
@@ -129,8 +134,10 @@ jQuery(document).ready(function($){
     var c = canvas.getCenter();
     canvas.zoomToPoint({x:c.left,y:c.top},z);
   };
+
   $('input[name="zoom_value"]').change(zoom);
   $('input[name="zoom_slider"]').on('input',zoom);
+
   // Pans control
   var isHold = false,isMoveObject = false;
   canvas.on("mouse:up",function(e){//Mouse up event
@@ -152,6 +159,7 @@ jQuery(document).ready(function($){
     }
 
   });
+
   var loadWallControl = function(e){//Load Wall control
     var f = canvas.getPointer(e),
         m = {x:e.pageX,y:e.pageY},
@@ -183,12 +191,13 @@ jQuery(document).ready(function($){
       }
     }
   };
+
   var loadObjectControl = function(e){ //Load Object control
     var obj = canvas.findTarget(e),
         m = {x:e.pageX,y:e.pageY},
         control = jQuery(".object-control"),
         f = canvas.getPointer(e);
-    control.css({"display":"block","position":"absolute","left":m.x - (control.width() / 2) + "px","top":m.y - 150 + "px"});
+    control.css({"display":"block","position":"absolute","left":m.x - (control.width() / 2) + "px","top":m.y - 200 + "px"});
     if(canvas._activeGroup != null) //Disable width, height and color control when multiple objects is selected
     {
       control.find(".control-dimession").css("display","none");
@@ -196,16 +205,17 @@ jQuery(document).ready(function($){
       return;
     }
     control.find(".control-dimession").css("display","inline-block");
-    if(obj["pathToFill"].length > 0)
+    if(obj.pathToFill.length > 0)
       control.find("#button-color").css("display","inline-block");
     else
       control.find("#button-color").css("display","none");
     control.find("#_w").val(obj.getWidth());
     control.find("#_h").val(obj.getHeight());
 
-  }
+  };
+
   var fx,fy;
-  canvas.on("mouse:down",function(e){
+  canvas.on("mouse:down",function(e){ //Change canvas state
     e = e.e; //Replace event object with originalEvent
     if(this.findTarget(e))
     {
@@ -217,6 +227,7 @@ jQuery(document).ready(function($){
     fx = e.offsetX;
     fy = e.offsetY;
   });
+
   var charCode;
   document.onkeydown = function(e){
     e = e || window.event;
@@ -226,6 +237,8 @@ jQuery(document).ready(function($){
     charCode = null;
   }
 
+
+  //Pans and wall line interactive
   canvas.on("mouse:move",function(e){ // Use as less function as you can
     if(isMoveObject == true) //Update object when mouse close to edge
     {
@@ -266,21 +279,25 @@ jQuery(document).ready(function($){
     perPixelTargetFind: true, // I love this part
     padding: 4294967295 // get the fuck out, border
   },[10,10,10,10,10,10]);
+
  canvas.centerObject(polWall);
  canvas.add(polWall);
-  var getDistance = function(p0,p1,p2){
+
+  var getDistance = function(p0,p1,p2){ //Get point to line distance
     var m = Math.sqrt( Math.pow( p2.y - p1.y, 2 ) + Math.pow( p2.x - p1.x, 2 ) );
     var t = Math.abs(p0.x * (p2.y - p1.y) - p0.y * (p2.x - p1.x) + p2.x * p1.y - p2.y * p1.x);
     return t/m;
-  }
-  var isBetween = function(p0,p1,p2){
+  };
+
+  var isBetween = function(p0,p1,p2){ //Check if between 2 points
     if( (p1.x < p0.x && p2.x > p0.x) || (p1.x > p0.x && p2.x < p0.x) )
       return true;
     if( (p1.y < p0.y && p2.y > p0.y) || (p1.y > p0.y && p2.y < p0.y) )
       return true;
     return false;
-  }
-  var onLineWall = function(p,w){
+  };
+
+  var onLineWall = function(p,w){ //Check on wall line
     p = w.toLocalPoint(p,'center','center');
     for(var i = 0; i < w.points.length;i++)
     {
@@ -292,7 +309,8 @@ jQuery(document).ready(function($){
     }
     return -1;
   };
-  var onCorner = function(p,w){
+
+  var onCorner = function(p,w){ //Check on wall corner
     p = w.toLocalPoint(p,'center','center');
     for(var i=0; i < w.points.length;i++)
     {
@@ -302,6 +320,7 @@ jQuery(document).ready(function($){
     }
     return -1;
   };
+
   var isChangeWall = -1;
   var isChangeCorner = -1;
   canvas.on("mouse:down",function(e) { //Start change Wall
@@ -328,7 +347,8 @@ jQuery(document).ready(function($){
       }
     }
   });
-  canvas.on("mouse:move",function(e){ // Thay đổi line  của  polygon
+
+  canvas.on("mouse:move",function(e){ // Change wall line, point position
     if(isChangeCorner != -1)
     {
       var i = isChangeCorner;
@@ -357,6 +377,7 @@ jQuery(document).ready(function($){
       polWall.points[j].y += moY;
     }
   });
+
   canvas.on("object:selected",function(e){ // Remove the Wall from selected object
     cloneOffset = 10;
     if(canvas._activeGroup == null)
@@ -370,12 +391,11 @@ jQuery(document).ready(function($){
     control.find("#_h").val("");
 
   });
-  //Save
-  jQuery("#saveJSON").click(function(e){
+  
+  jQuery("#saveJSON").click(function(e){ //Save
     e.preventDefault();
     var jsdaa = canvas.toJSON();
-    jQuery("#loadArea").val(JSON.stringify(canvas.toJSON(['left','top','strokeWidth','strokeLineCap','fill','hasControls','hasBorders',
-  'lockMovementY','lockMovementX','perPixelTargetFind','padding'])));
+    jQuery("#loadArea").val(JSON.stringify(canvas.toJSON(['srcSVG','hexCode','pathToFill','left','top','strokeWidth','strokeLineCap','fill','hasControls','hasBorders','lockMovementY','lockMovementX','perPixelTargetFind','padding'])));
     UIkit.notify({
     message : '<i class="uk-icon-check"></i> Saved!',
     status  : 'success',
@@ -383,8 +403,8 @@ jQuery(document).ready(function($){
     pos     : 'top-center'
     });
   });
-  //Load
-  jQuery("#loadJSON").click(function(e){
+  
+  jQuery("#loadJSON").click(function(e){//Load
     e.preventDefault();
     var jsonString = jQuery("#loadArea").val();
     var JSONData = JSON.parse(jsonString);
@@ -408,6 +428,7 @@ jQuery(document).ready(function($){
       canvas.renderAll();
     }
   });
+
   jQuery(document).on("click",".wall-control #add-cor",function(e){ //Add Wall point
     e.preventDefault();
     var idx = jQuery(this).parent(".wall-control").find("#_i").val();
@@ -426,6 +447,7 @@ jQuery(document).ready(function($){
       jQuery(this).parent(".wall-control").find("#delete-cor").css("display","block");
     }
   });
+
   jQuery(document).on("click",".object-control #button-clone",function(e){ // Clone objects
     e.preventDefault();
     if(canvas._activeGroup != null) //For group
@@ -433,11 +455,10 @@ jQuery(document).ready(function($){
         return;
     }
     var c = canvas.getActiveObject();
-    var cC = fabric.util.object.clone(c); //Create whole new object with c.options not clone
-    cC.set({left: c.left + cloneOffset,top: c.top + cloneOffset});
-    canvas.add(cC);
+    var cC = fabric.Path.makeClone(c,cloneOffset,canvas); //Create whole new object with c.options not clone
     cloneOffset += 10;
   });
+
   jQuery(document).on("click",".object-control #button-remove",function(e){ // Object remove
     e.preventDefault();
     if(canvas._activeGroup != null) // For group
@@ -458,6 +479,7 @@ jQuery(document).ready(function($){
     //cloneOffset += 10;
     jQuery(this).closest(".object-control").css("display","none");
   });
+
   jQuery(document).on("mousedown",".object-control .color-hex",function(){ //Color-change
     var hexCode = "#"+jQuery(this).data("color");
     if(canvas._activeGroup != null) //For group
@@ -465,16 +487,18 @@ jQuery(document).ready(function($){
         return;
     }
     var c = canvas.getActiveObject();
-    if(c["pathToFill"].length > 0)
+    if(c.pathToFill.length > 0)
     {
-      for(var i = 0; i < c["pathToFill"].length;i++)
+      c.hexCode = hexCode; //reference for clone
+      for(var i = 0; i < c.pathToFill.length;i++)
       {
-        var j = c["pathToFill"][i];
+        var j = c.pathToFill[i];
         c.paths[j].setFill(hexCode);
       }
     }
     //c.render(canvas.getContext()); Don't render here -> it will be rendered bug
   });
+
   jQuery(document).on("mouseup",".object-control .color-hex",function(){
     canvas.renderAll(); //Render when mouse release
   });
@@ -484,3 +508,29 @@ var zoom_change = function(e) {
   var tx = document.getElementsByName("zoom_value");
   tx[0].value = sl.value;
 };
+fabric.Path.makeClone = function(o,cOffset,ca){
+  fabric.loadSVGFromURL(o.srcSVG,function(objects,options){
+        var c = fabric.util.groupSVGElements(objects,options);
+        c.hexCode = o.hexCode;
+        c.pathToFill = o.pathToFill; //set pathToFill property
+        c.srcSVG = o.srcSVG;
+        c.scale(o.scaleX);
+        c.set({
+          left: o.left + cOffset,
+          top: o.top + cOffset,
+          hoverCursor: "move",
+          lockUniScaling: true,
+          lockScalingFlip: true,
+          centeredScaling: true
+        });
+        if(c.pathToFill.length > 0)
+        {
+          for(var i = 0; i < c.pathToFill.length;i++)
+          {
+            var j = c.pathToFill[i];
+            c.paths[j].setFill(c.hexCode);
+          }
+        }
+        ca.add(c);
+      });
+}
