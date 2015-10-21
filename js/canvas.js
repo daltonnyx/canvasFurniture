@@ -252,7 +252,7 @@ jQuery(document).ready(function($){
 
   //Setting wall
   var wallPoints = [{x:10,y:10},{x:200,y:10},{x:200,y:150},{x:400,y:150},{x:400,y:300},{x:10,y:300}];
-  var polWall = new LiPolygon(wallPoints,{
+  var polWall = new fabric.LiPolygon(wallPoints,{
     left: 0,
     top:0,
     strokeWidth: 10,
@@ -374,7 +374,8 @@ jQuery(document).ready(function($){
   jQuery("#saveJSON").click(function(e){
     e.preventDefault();
     var jsdaa = canvas.toJSON();
-    jQuery("#loadArea").val(JSON.stringify(canvas.toJSON(['lineWidths'])));
+    jQuery("#loadArea").val(JSON.stringify(canvas.toJSON(['left','top','strokeWidth','strokeLineCap','fill','hasControls','hasBorders',
+  'lockMovementY','lockMovementX','perPixelTargetFind','padding'])));
     UIkit.notify({
     message : '<i class="uk-icon-check"></i> Saved!',
     status  : 'success',
@@ -387,7 +388,10 @@ jQuery(document).ready(function($){
     e.preventDefault();
     var jsonString = jQuery("#loadArea").val();
     var JSONData = JSON.parse(jsonString);
-    canvas.loadFromJSON(JSONData,canvas.renderAll.bind(canvas));
+    canvas.loadFromJSON(JSONData,canvas.renderAll.bind(canvas),function(o,object){ //o js json object, object is fabric object
+      if(object.type == 'liPolygon')
+        polWall = object;
+    });
     //alert(canvas._objects.length);
   });
 
