@@ -1,2 +1,2 @@
-# canvasFurniture
-Furniture canvas build
+# Canvas Furniture
+A project for homeclick.vn
