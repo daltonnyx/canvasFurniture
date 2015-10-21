@@ -452,7 +452,7 @@ jQuery(document).ready(function($){
     //cloneOffset += 10;
     jQuery(this).closest(".object-control").css("display","none");
   });
-  jQuery(document).on("click",".object-control .color-hex",function(){ //Color-change
+  jQuery(document).on("mousedown",".object-control .color-hex",function(){ //Color-change
     var hexCode = "#"+jQuery(this).data("color");
     if(canvas._activeGroup != null) //For group
     {
@@ -467,7 +467,10 @@ jQuery(document).ready(function($){
         c.paths[j].setFill(hexCode);
       }
     }
-    c.render(canvas.getContext());
+    //c.render(canvas.getContext()); Don't render here -> it will be rendered bug
+  });
+  jQuery(document).on("mouseup",".object-control .color-hex",function(){
+    canvas.renderAll(); //Render when mouse release
   });
 });
 var zoom_change = function(e) {
