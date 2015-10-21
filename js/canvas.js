@@ -139,6 +139,7 @@ jQuery(document).ready(function($){
       isMoveObject = false;
       isChangeCorner = -1;
       isChangeWall = -1;
+      canvas.renderAll();
     //If pointer still in point area then load control
     if(this.findTarget(e.e) == polWall){
       e = e.e;
