@@ -72,7 +72,7 @@ jQuery(document).ready(function($){
   //Get SVG file to import
   $(document).on("mousedown",".svg-item",function(event){
     isDragable = true;
-    src = $(event.target).attr("src");
+    src = $(event.target).data("svg");
     srcH = $(event.target).height();
     srcW = $(event.target).width();
     centerX = event.pageX - $(event.target).offset().left;
