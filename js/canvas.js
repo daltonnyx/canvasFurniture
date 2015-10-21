@@ -1,3 +1,9 @@
+/*
+ * Project Name: Furniture building
+ * Author: Dalton Nyx
+ * License:  GNU GENERAL PUBLIC
+ *
+ */
 jQuery(document).ready(function($){
 
   // init object and variable
@@ -255,8 +261,8 @@ jQuery(document).ready(function($){
     lockMovementX: true,
     lockMovementY: true,
     perPixelTargetFind: true, // I love this part
-    padding: 4294967295 // get the fuck out border
-  },[10,5,10,5,10,5]);
+    padding: 4294967295 // get the fuck out, border
+  },[10,10,10,10,10,10]);
  canvas.centerObject(polWall);
  canvas.add(polWall);
   var getDistance = function(p0,p1,p2){
