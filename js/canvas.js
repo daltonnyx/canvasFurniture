@@ -153,12 +153,13 @@ jQuery(document).ready(function($){
 
   });
   var loadWallControl = function(e){//Load Wall control
-    var f = canvas.getPointer(e);
-    var c = onCorner(f,polWall);
+    var f = canvas.getPointer(e),
+        m = {x:e.pageX,y:e.pageY},
+        c = onCorner(f,polWall);
     if(c != -1){
       var control = jQuery(".wall-control");
       var p = polWall.points[c];
-      control.css({"display":"block","position":"absolute","left":f.x - 100 + "px","top":f.y - 50 + "px"});
+      control.css({"display":"block","position":"absolute","left":m.x - 120 + "px","top":m.y - 80 + "px"});
       control.find("#_i").val(c);
       control.find("#_x").val(f.x);
       control.find("#_y").val(f.y);
@@ -172,7 +173,7 @@ jQuery(document).ready(function($){
       if(l != -1)
       {
         var control = jQuery(".wall-control");
-        control.css({"display":"block","position":"absolute","left":f.x - 100 + "px","top":f.y - 50 + "px"});
+        control.css({"display":"block","position":"absolute","left":m.x - 120 + "px","top":m.y - 80 + "px"});
         control.find("#_i").val(l);
         control.find("#_x").val(f.x);
         control.find("#_y").val(f.y);
@@ -183,10 +184,11 @@ jQuery(document).ready(function($){
     }
   };
   var loadObjectControl = function(e){ //Load Object control
-    var obj = canvas.findTarget(e);
-    var control = jQuery(".object-control");
-    var f = canvas.getPointer(e);
-    control.css({"display":"block","position":"absolute","left":obj.left - (control.width()) + "px","top":obj.top - 50 + "px"});
+    var obj = canvas.findTarget(e),
+        m = {x:e.pageX,y:e.pageY},
+        control = jQuery(".object-control"),
+        f = canvas.getPointer(e);
+    control.css({"display":"block","position":"absolute","left":m.x - (control.width() / 2) + "px","top":m.y - 150 + "px"});
     if(canvas._activeGroup != null) //Disable width, height and color control when multiple objects is selected
     {
       control.find(".control-dimession").css("display","none");
@@ -372,7 +374,7 @@ jQuery(document).ready(function($){
   jQuery("#saveJSON").click(function(e){
     e.preventDefault();
     var jsdaa = canvas.toJSON();
-    jQuery("#loadArea").val(JSON.stringify(canvas.toJSON()));
+    jQuery("#loadArea").val(JSON.stringify(canvas.toJSON(['lineWidths'])));
     UIkit.notify({
     message : '<i class="uk-icon-check"></i> Saved!',
     status  : 'success',
@@ -386,7 +388,7 @@ jQuery(document).ready(function($){
     var jsonString = jQuery("#loadArea").val();
     var JSONData = JSON.parse(jsonString);
     canvas.loadFromJSON(JSONData,canvas.renderAll.bind(canvas));
-    alert(canvas._objects.length);
+    //alert(canvas._objects.length);
   });
 
   //Control part
@@ -427,7 +429,7 @@ jQuery(document).ready(function($){
         return;
     }
     var c = canvas.getActiveObject();
-    var cC = fabric.util.object.clone(c);
+    var cC = fabric.util.object.clone(c); //Create whole new object with c.options not clone
     cC.set({left: c.left + cloneOffset,top: c.top + cloneOffset});
     canvas.add(cC);
     cloneOffset += 10;
