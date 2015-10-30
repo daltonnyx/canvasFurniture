@@ -122,7 +122,7 @@ jQuery(document).ready(function($){
             obj.pathToFill.push(i);
           }
         }
-        obj.setControlsVisibility({mtr:false});
+        //obj.setControlsVisibility({mtr:false});
         canvas.add(obj);
       });
       isDragable = false;
@@ -568,10 +568,21 @@ jQuery(document).ready(function($){
     var rL = canvas.getPointer(e.e),
         rC = oR.getCenterPoint(),
         curAngle = oR.getAngle(),
-        angle = calcAngle(rC,rL,rF);
+        angle = curAngle + calcAngle(rC,rL,rF),
+        rotate_button = jQuery(".rotate-button"),
+        delete_button = jQuery(".delete-button"),
+        container = jQuery("#tutorial");
     oR.setAngle(angle);
-     console.log(angle);
-    oR.render(canvas.getContext());
+    canvas.renderAll();
+    oR.setCoords();
+    rotate_button.css({
+      "left": oR.oCoords.bl.x - 16 + container.offset().left + "px",
+      "top":  oR.oCoords.bl.y + container.offset().top + "px"
+    });
+    delete_button.css({
+        "left": oR.oCoords.tr.x - 8 + container.offset().left + "px",
+        "top":  oR.oCoords.tr.y - 8 + container.offset().top + "px"
+    });
     rF = rL;
   });
 
@@ -632,7 +643,7 @@ var calcAngle = function(p0,p1,p2)
   var x0 = p0.x,y0 = p0.y,
       x1 = p1.x,y1 = p1.y,
       x2 = p2.x,y2 = p2.y;
-  var angle = Math.atan2(Math.abs((x1-x0)*(y2-y0)-(x2-x0)*(y1-y0)),
+  var angle = Math.atan2((x1-x0)*(y2-y0)-(x2-x0)*(y1-y0),
                 (x1-x0)*(x2-x0)+(y1-y0)*(y2-y0));
-  return fabric.util.radiansToDegrees(angle);
+  return fabric.util.radiansToDegrees(angle*(-1));
 }
