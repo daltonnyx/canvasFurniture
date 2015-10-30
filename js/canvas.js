@@ -118,6 +118,7 @@ jQuery(document).ready(function($){
         {
           if(obj.paths[i].fill == "")
           {
+            obj.paths[i].setFill("#ffffff");
             obj.pathToFill.push(i);
           }
         }
@@ -196,8 +197,19 @@ jQuery(document).ready(function($){
     var obj = canvas.findTarget(e),
         m = {x:e.pageX,y:e.pageY},
         control = jQuery(".object-control"),
-        f = canvas.getPointer(e);
-    control.css({"display":"block","position":"absolute","left":m.x - (control.width() / 2) + "px","top":m.y - 200 + "px"});
+        delete_button = jQuery(".delete-button"),
+        container = jQuery("#tutorial"),
+        f = getTopPoint(obj);
+    control.css({
+      "display":"block",
+      "position":"absolute",
+      "left":f.x - (control.width() / 2) + container.offset().left + "px",
+      "top":f.y - control.height() - 50 + container.offset().top + "px"});
+    delete_button.css({
+        "display": 'block',
+        "left": obj.oCoords.tr.x - 8 + container.offset().left + "px",
+        "top":  obj.oCoords.tr.y - 8 + container.offset().top + "px"
+      });
     if(canvas._activeGroup != null) //Disable width, height and color control when multiple objects is selected
     {
       control.find(".control-dimession").css("display","none");
@@ -326,6 +338,7 @@ jQuery(document).ready(function($){
   canvas.on("mouse:down",function(e) { //Start change Wall
     jQuery(".wall-control").css("display","none");
     jQuery(".object-control").css("display","none");
+    jQuery(".delete-button").css("display","none");
     if(this.findTarget(e.e) == polWall)
     {
       e = e.e;
@@ -502,13 +515,37 @@ jQuery(document).ready(function($){
   jQuery(document).on("mouseup",".object-control .color-hex",function(){
     canvas.renderAll(); //Render when mouse release
   });
+
+  //Delete button
+  jQuery(".delete-button").on("click",function(){
+    if(canvas._activeGroup != null) // For group
+    {
+        for(var i = 0;i < canvas._activeGroup._objects.length;i++)
+        {
+          canvas.remove(canvas._activeGroup._objects[i]);
+        }
+        canvas.remove(canvas._activeGroup._objects[0]); //Remove last object
+        jQuery(this).css("display","none");
+        jQuery(".object-control").css("display","none");
+        canvas.discardActiveGroup(); // Remove control border
+        canvas.discardActiveObject(); // Need both discard
+        //canvas.renderAll();
+        return;
+    }
+    var cR = canvas.getActiveObject();
+    canvas.remove(cR);
+    jQuery(this).css("display","none");
+    jQuery(".object-control").css("display","none");
+  });
+
+
 });
 var zoom_change = function(e) {
   var sl = e.target;
   var tx = document.getElementsByName("zoom_value");
   tx[0].value = sl.value;
 };
-fabric.Path.makeClone = function(o,cOffset,ca){
+fabric.Path.makeClone = function(o,cOffset,ca){ // Custom clone object function 
   fabric.loadSVGFromURL(o.srcSVG,function(objects,options){
         var c = fabric.util.groupSVGElements(objects,options);
         c.hexCode = o.hexCode;
@@ -533,4 +570,22 @@ fabric.Path.makeClone = function(o,cOffset,ca){
         }
         ca.add(c);
       });
+}
+
+var getTopPoint = function(o)
+{
+  var t;
+  for(var i in o.oCoords)
+  {
+    p = o.oCoords[i];
+    if(typeof t == 'undefined' || t == null)
+    {
+      t = p;
+    }
+    if(t.y > p.y)
+    {
+      t = p;
+    }
+  }
+  return t;
 }
