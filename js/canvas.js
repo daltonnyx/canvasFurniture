@@ -122,6 +122,7 @@ jQuery(document).ready(function($){
             obj.pathToFill.push(i);
           }
         }
+        obj.setControlsVisibility({mtr:false});
         canvas.add(obj);
       });
       isDragable = false;
@@ -198,6 +199,7 @@ jQuery(document).ready(function($){
         m = {x:e.pageX,y:e.pageY},
         control = jQuery(".object-control"),
         delete_button = jQuery(".delete-button"),
+        rotate_button = jQuery(".rotate-button"),
         container = jQuery("#tutorial"),
         f = getTopPoint(obj);
     control.css({
@@ -210,6 +212,11 @@ jQuery(document).ready(function($){
         "left": obj.oCoords.tr.x - 8 + container.offset().left + "px",
         "top":  obj.oCoords.tr.y - 8 + container.offset().top + "px"
       });
+    rotate_button.css({
+      "display": 'block',
+      "left": obj.oCoords.bl.x - 16 + container.offset().left + "px",
+      "top":  obj.oCoords.bl.y + container.offset().top + "px"
+    });
     if(canvas._activeGroup != null) //Disable width, height and color control when multiple objects is selected
     {
       control.find(".control-dimession").css("display","none");
@@ -339,6 +346,7 @@ jQuery(document).ready(function($){
     jQuery(".wall-control").css("display","none");
     jQuery(".object-control").css("display","none");
     jQuery(".delete-button").css("display","none");
+    jQuery(".rotate-button").css("display","none")
     if(this.findTarget(e.e) == polWall)
     {
       e = e.e;
@@ -525,7 +533,7 @@ jQuery(document).ready(function($){
           canvas.remove(canvas._activeGroup._objects[i]);
         }
         canvas.remove(canvas._activeGroup._objects[0]); //Remove last object
-        jQuery(this).css("display","none");
+        jQuery(".object-button").css("display","none");
         jQuery(".object-control").css("display","none");
         canvas.discardActiveGroup(); // Remove control border
         canvas.discardActiveObject(); // Need both discard
@@ -534,10 +542,38 @@ jQuery(document).ready(function($){
     }
     var cR = canvas.getActiveObject();
     canvas.remove(cR);
-    jQuery(this).css("display","none");
+    jQuery(".object-button").css("display","none");
     jQuery(".object-control").css("display","none");
   });
 
+  //Rotate Button
+  var isRotate = false,rF;
+  jQuery(".rotate-button").on('mousedown',function(event) {
+    isRotate = true;
+    rF = canvas.getPointer(event);
+  });
+  canvas.on('mouse:up', function(event) {
+    isRotate = false;
+  });
+  jQuery(document).on('mouseup', function(event) {
+    isRotate = false;
+  });
+  canvas.on("mouse:move",function(e){
+   
+    if(!isRotate)
+      return;
+    var oR = canvas.getActiveObject();
+    if(oR == null)
+      return;
+    var rL = canvas.getPointer(e.e),
+        rC = oR.getCenterPoint(),
+        curAngle = oR.getAngle(),
+        angle = calcAngle(rC,rL,rF);
+    oR.setAngle(angle);
+     console.log(angle);
+    oR.render(canvas.getContext());
+    rF = rL;
+  });
 
 });
 var zoom_change = function(e) {
@@ -588,4 +624,15 @@ var getTopPoint = function(o)
     }
   }
   return t;
+}
+
+
+var calcAngle = function(p0,p1,p2)
+{
+  var x0 = p0.x,y0 = p0.y,
+      x1 = p1.x,y1 = p1.y,
+      x2 = p2.x,y2 = p2.y;
+  var angle = Math.atan2(Math.abs((x1-x0)*(y2-y0)-(x2-x0)*(y1-y0)),
+                (x1-x0)*(x2-x0)+(y1-y0)*(y2-y0));
+  return fabric.util.radiansToDegrees(angle);
 }

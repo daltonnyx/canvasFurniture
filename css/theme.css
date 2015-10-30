@@ -11,5 +11,7 @@
 .object-control .button-remove {background:url('../remove.png') left top / 100% no-repeat transparent;padding:0 15px;}
 .object-control .button-rotate-left {background:url('../rotateleft.png') left top / 100% no-repeat transparent;padding:0 15px;}
 .object-control .button-rotate-right {background:url('../rotateright.png') left top / 100% no-repeat transparent;padding:0 15px;}
-.delete-button {background-image: url('../delete.png');background-repeat: no-repeat;background-position: center center;background-size: contain;
+.delete-button {background-image: url('../delete.png');cursor: pointer;}
+.rotate-button {background-image: url('../rotate.png');cursor: crosshair;}
+.object-button {background-repeat: no-repeat;background-position: center center;background-size: contain;
 position: absolute; width:16px;height:16px;left: 0;top: 0;z-index: 999;display: none;}
