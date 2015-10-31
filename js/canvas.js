@@ -577,16 +577,15 @@ jQuery(document).ready(function($){
         rotate_button = jQuery(".rotate-button"),
         delete_button = jQuery(".delete-button"),
         container = jQuery("#tutorial");
-    if(Math.abs(angle - curAngle) < 1)
-      return;
-    if(Math.abs(angle % 90) < 2)
+    
+    if(Math.abs(angle % 90) < 3)
     {
       if(angle > 0)
         angle = Math.floor(angle / 90) * 90;
       else
         angle = Math.ceil(angle / 90) * 90;
     }
-    else if (Math.abs(angle % 90) > 88)
+    else if (Math.abs(angle % 90) > 87)
     {
       if(angle > 0)
         angle = Math.ceil((angle / 90)) * 90;
