@@ -632,6 +632,7 @@ fabric.Path.makeClone = function(o,cOffset,ca){ // Custom clone object function
             c.paths[j].setFill(c.hexCode);
           }
         }
+        c.setControlsVisibility({mtr:false,tr:false,bl:false});
         ca.add(c);
       });
 }
