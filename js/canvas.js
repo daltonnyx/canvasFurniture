@@ -145,6 +145,8 @@ jQuery(document).ready(function($){
   canvas.on("mouse:up",function(e){//Mouse up event
     // Reset check state - No need to check condition
       isHold = false;
+      canvas.setCursor('default');
+       canvas.selection = true;
       isMoveObject = false;
       isChangeCorner = -1;
       isChangeWall = -1;
@@ -243,7 +245,11 @@ jQuery(document).ready(function($){
       return;
     }
     if(charCode == 17)
+    {
       isHold = true;
+      canvas.setCursor('grabbing');
+      canvas.selection = false;
+    }
     fx = e.offsetX;
     fy = e.offsetY;
   });
