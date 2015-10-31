@@ -122,7 +122,7 @@ jQuery(document).ready(function($){
             obj.pathToFill.push(i);
           }
         }
-        //obj.setControlsVisibility({mtr:false});
+        obj.setControlsVisibility({mtr:false,tr:false,bl:false});
         canvas.add(obj);
       });
       isDragable = false;
@@ -572,9 +572,26 @@ jQuery(document).ready(function($){
         rotate_button = jQuery(".rotate-button"),
         delete_button = jQuery(".delete-button"),
         container = jQuery("#tutorial");
-    oR.setAngle(angle);
-    canvas.renderAll();
+    if(Math.abs(angle - curAngle) < 1)
+      return;
+    if(Math.abs(angle % 90) < 2)
+    {
+      if(angle > 0)
+        angle = Math.floor(angle / 90) * 90;
+      else
+        angle = Math.ceil(angle / 90) * 90;
+    }
+    else if (Math.abs(angle % 90) > 88)
+    {
+      if(angle > 0)
+        angle = Math.ceil((angle / 90)) * 90;
+      else
+        angle = Math.floor(angle / 90) * 90;
+    }
+    oR.rotate(angle);
     oR.setCoords();
+    canvas.renderAll();
+    
     rotate_button.css({
       "left": oR.oCoords.bl.x - 16 + container.offset().left + "px",
       "top":  oR.oCoords.bl.y + container.offset().top + "px"
