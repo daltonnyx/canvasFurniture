@@ -608,7 +608,36 @@ jQuery(document).ready(function($){
     rF = rL;
   });
 
+  jQuery(window).bind('mousewheel DOMMouseScroll', function(event){
+    var c = canvas.getCenter();
+    
+    if (event.originalEvent.wheelDelta > 0 || event.originalEvent.detail < 0) {
+        // scroll up
+        if (z >= 20)
+        {
+          z = 20;
+          return;
+        }
+        z += 0.05;
+
+    }
+    else {
+        // scroll down
+        if (z <= 0.05)
+        {
+          z = 0.05;
+          return;
+        }
+        z -= 0.05;
+    }
+     canvas.zoomToPoint({x:c.left,y:c.top},z);
+  });
+
 });
+
+
+
+
 var zoom_change = function(e) {
   var sl = e.target;
   var tx = document.getElementsByName("zoom_value");
@@ -670,3 +699,5 @@ var calcAngle = function(p0,p1,p2)
                 (x1-x0)*(x2-x0)+(y1-y0)*(y2-y0));
   return fabric.util.radiansToDegrees(angle*(-1));
 }
+
+
