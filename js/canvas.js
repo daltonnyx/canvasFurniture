@@ -214,8 +214,9 @@ jQuery(document).ready(function($){
       });
     rotate_button.css({
       "display": 'block',
-      "left": obj.oCoords.bl.x - 16 + container.offset().left + "px",
-      "top":  obj.oCoords.bl.y + container.offset().top + "px"
+      "left": obj.oCoords.bl.x - 10 + container.offset().left + "px",
+      "top":  obj.oCoords.bl.y - 12 + container.offset().top + "px",
+      "transform" : "rotate("+obj.getAngle()+"deg)"
     });
     if(canvas._activeGroup != null) //Disable width, height and color control when multiple objects is selected
     {
@@ -550,6 +551,10 @@ jQuery(document).ready(function($){
   var isRotate = false,rF;
   jQuery(".rotate-button").on('mousedown',function(event) {
     isRotate = true;
+    var control = jQuery(".object-control");
+    control.css({
+      "display": 'none'
+    });
     rF = canvas.getPointer(event);
   });
   canvas.on('mouse:up', function(event) {
@@ -593,8 +598,9 @@ jQuery(document).ready(function($){
     canvas.renderAll();
     
     rotate_button.css({
-      "left": oR.oCoords.bl.x - 16 + container.offset().left + "px",
-      "top":  oR.oCoords.bl.y + container.offset().top + "px"
+      "left": oR.oCoords.bl.x - 10 + container.offset().left + "px",
+      "top":  oR.oCoords.bl.y - 12 + container.offset().top + "px",
+      "transform" : "rotate("+angle+"deg)"
     });
     delete_button.css({
         "left": oR.oCoords.tr.x - 8 + container.offset().left + "px",
