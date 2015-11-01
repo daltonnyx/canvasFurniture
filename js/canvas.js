@@ -17,6 +17,7 @@ jQuery(document).ready(function($){
         return true;
     return false;
   }
+
   // Find obj part
   var objectPart = function(p) {
     var cW = canvas.width / 2;
@@ -51,8 +52,6 @@ jQuery(document).ready(function($){
           maxY = cor.y;
       }
     }
-    //console.log(obj.oCoords);
-    //console.log(minX + "-" + minY);
     switch (c){
       case 1 :
         return {x:minX,y:minY};break;
@@ -122,8 +121,20 @@ jQuery(document).ready(function($){
             obj.pathToFill.push(i);
           }
         }
-        obj.setControlsVisibility({mtr:false,tr:false,bl:false});
-        canvas.add(obj);
+        obj.cloneAsImage(function(cacheImg){ // Using cache for higher performance
+          cacheImg.set({
+            left: obj.left,
+            top: obj.top,
+            hoverCursor: "move",
+            lockUniScaling: true,
+            lockScalingFlip: true,
+            centeredScaling: true
+          });
+          cacheImg.pathToFill = obj.pathToFill;
+          cacheImg.srcSVG = obj.srcSVG;
+          cacheImg.setControlsVisibility({mtr:false,tr:false,bl:false});
+          canvas.add(cacheImg);
+        });
       });
       isDragable = false;
     }
@@ -196,12 +207,10 @@ jQuery(document).ready(function($){
     }
   };
 
-  var loadObjectControl = function(e){ //Load Object control
+var loadObjectControl = function(e){ //Load Object control
     var obj = canvas.findTarget(e),
         m = {x:e.pageX,y:e.pageY},
         control = jQuery(".object-control"),
-        delete_button = jQuery(".delete-button"),
-        rotate_button = jQuery(".rotate-button"),
         container = jQuery("#tutorial"),
         f = getTopPoint(obj);
     control.css({
@@ -209,17 +218,7 @@ jQuery(document).ready(function($){
       "position":"absolute",
       "left":f.x - (control.width() / 2) + container.offset().left + "px",
       "top":f.y - control.height() - 50 + container.offset().top + "px"});
-    delete_button.css({
-        "display": 'block',
-        "left": obj.oCoords.tr.x - 8 + container.offset().left + "px",
-        "top":  obj.oCoords.tr.y - 8 + container.offset().top + "px"
-      });
-    rotate_button.css({
-      "display": 'block',
-      "left": obj.oCoords.bl.x - 10 + container.offset().left + "px",
-      "top":  obj.oCoords.bl.y - 12 + container.offset().top + "px",
-      "transform" : "rotate("+obj.getAngle()+"deg)"
-    });
+    updateControl(obj);
     if(canvas._activeGroup != null) //Disable width, height and color control when multiple objects is selected
     {
       control.find(".control-dimession").css("display","none");
@@ -233,7 +232,8 @@ jQuery(document).ready(function($){
       control.find("#button-color").css("display","none");
     control.find("#_w").val(obj.getWidth());
     control.find("#_h").val(obj.getHeight());
-
+    jQuery(".width-dimession").text(Math.round(obj.getWidth()));
+    jQuery(".height-dimession").text(Math.round(obj.getHeight()));
   };
 
   var fx,fy;
@@ -352,6 +352,7 @@ jQuery(document).ready(function($){
   canvas.on("mouse:down",function(e) { //Start change Wall
     jQuery(".wall-control").css("display","none");
     jQuery(".object-control").css("display","none");
+    jQuery(".dimession").css("display","none");
     jQuery(".delete-button").css("display","none");
     jQuery(".rotate-button").css("display","none")
     if(this.findTarget(e.e) == polWall)
@@ -440,7 +441,6 @@ jQuery(document).ready(function($){
       if(object.type == 'liPolygon')
         polWall = object;
     });
-    //alert(canvas._objects.length);
   });
 
   //Control part
@@ -497,14 +497,16 @@ jQuery(document).ready(function($){
         }
         canvas.remove(canvas._activeGroup._objects[0]); //Remove last object
         jQuery(this).closest(".object-control").css("display","none");
+        jQuery(".object-button").css("display","none");
+        jQuery(".dimession").css("display","none");
         canvas.discardActiveGroup(); // Remove control border
         canvas.discardActiveObject(); // Need both discard
-        //canvas.renderAll();
         return;
     }
     var cR = canvas.getActiveObject();
     canvas.remove(cR);
-    //cloneOffset += 10;
+    jQuery(".object-button").css("display","none");
+        jQuery(".dimession").css("display","none");
     jQuery(this).closest(".object-control").css("display","none");
   });
 
@@ -541,15 +543,16 @@ jQuery(document).ready(function($){
         }
         canvas.remove(canvas._activeGroup._objects[0]); //Remove last object
         jQuery(".object-button").css("display","none");
+        jQuery(".dimession").css("display","none");
         jQuery(".object-control").css("display","none");
         canvas.discardActiveGroup(); // Remove control border
         canvas.discardActiveObject(); // Need both discard
-        //canvas.renderAll();
         return;
     }
     var cR = canvas.getActiveObject();
     canvas.remove(cR);
     jQuery(".object-button").css("display","none");
+    jQuery(".dimession").css("display","none");
     jQuery(".object-control").css("display","none");
   });
 
@@ -579,11 +582,7 @@ jQuery(document).ready(function($){
     var rL = canvas.getPointer(e.e),
         rC = oR.getCenterPoint(),
         curAngle = oR.getAngle(),
-        angle = curAngle + calcAngle(rC,rL,rF),
-        rotate_button = jQuery(".rotate-button"),
-        delete_button = jQuery(".delete-button"),
-        container = jQuery("#tutorial");
-    
+        angle = curAngle + calcAngle(rC,rL,rF);
     if(Math.abs(angle % 90) < 3)
     {
       if(angle > 0)
@@ -601,22 +600,15 @@ jQuery(document).ready(function($){
     oR.rotate(angle);
     oR.setCoords();
     canvas.renderAll();
-    
-    rotate_button.css({
-      "left": oR.oCoords.bl.x - 10 + container.offset().left + "px",
-      "top":  oR.oCoords.bl.y - 12 + container.offset().top + "px",
-      "transform" : "rotate("+angle+"deg)"
-    });
-    delete_button.css({
-        "left": oR.oCoords.tr.x - 8 + container.offset().left + "px",
-        "top":  oR.oCoords.tr.y - 8 + container.offset().top + "px"
-    });
+    updateControl(oR);
     rF = rL;
   });
 
-  jQuery(window).bind('mousewheel DOMMouseScroll', function(event){
+  jQuery(window).on('mousewheel DOMMouseScroll', function(event){
+    if(event.target.nodeName != 'CANVAS')
+      return;
+    event.preventDefault();
     var c = canvas.getCenter();
-    
     if (event.originalEvent.wheelDelta > 0 || event.originalEvent.detail < 0) {
         // scroll up
         if (z >= 20)
@@ -625,7 +617,6 @@ jQuery(document).ready(function($){
           return;
         }
         z += 0.05;
-
     }
     else {
         // scroll down
@@ -636,19 +627,22 @@ jQuery(document).ready(function($){
         }
         z -= 0.05;
     }
+    var oZ = canvas.getActiveObject();
+    if(oZ != null)
+    {
+      updateControl(oZ);
+    }
      canvas.zoomToPoint({x:c.left,y:c.top},z);
   });
 
 });
-
-
-
 
 var zoom_change = function(e) {
   var sl = e.target;
   var tx = document.getElementsByName("zoom_value");
   tx[0].value = sl.value;
 };
+
 fabric.Path.makeClone = function(o,cOffset,ca){ // Custom clone object function 
   fabric.loadSVGFromURL(o.srcSVG,function(objects,options){
         var c = fabric.util.groupSVGElements(objects,options);
@@ -672,8 +666,18 @@ fabric.Path.makeClone = function(o,cOffset,ca){ // Custom clone object function
             c.paths[j].setFill(c.hexCode);
           }
         }
-        c.setControlsVisibility({mtr:false,tr:false,bl:false});
-        ca.add(c);
+        var cacheImg = c.cloneAsImage(function(cacheImg){ // Using cache for higher performance
+          cacheImg.set({
+            left: obj.left,
+            top: obj.top,
+            hoverCursor: "move",
+            lockUniScaling: true,
+            lockScalingFlip: true,
+            centeredScaling: true
+          });
+        });
+        cacheImg.setControlsVisibility({mtr:false,tr:false,bl:false});
+        ca.add(cacheImg);
       });
 }
 
@@ -706,4 +710,38 @@ var calcAngle = function(p0,p1,p2)
   return fabric.util.radiansToDegrees(angle*(-1));
 }
 
-
+var updateControl = function(o)
+{
+  var   rotate_button = jQuery(".rotate-button"),
+        dimession_width = jQuery(".width-dimession"),
+        dimession_height = jQuery(".height-dimession"),
+        delete_button = jQuery(".delete-button"),
+        container = jQuery("#tutorial");
+  rotate_button.css({
+      "display": 'block',
+      "left": o.oCoords.bl.x - 10 + container.offset().left + "px",
+      "top":  o.oCoords.bl.y - 12 + container.offset().top + "px",
+      "transform" : "rotate("+o.getAngle()+"deg)"
+  });
+  delete_button.css({
+      "display": 'block',
+      "left": o.oCoords.tr.x - 8 + container.offset().left + "px",
+      "top":  o.oCoords.tr.y - 8 + container.offset().top + "px"
+  });
+  var dOffsetY = (o.oCoords.mt.y > o.getCenterPoint().y) ? 0 : - 24,
+      dOffsetX = (o.oCoords.mt.x >= o.getCenterPoint().x) ? 0 : - 24;
+  dimession_width.css({
+      "display": 'block',
+      "left": o.oCoords.mt.x + dOffsetX + container.offset().left + "px",
+      "top" : o.oCoords.mt.y + dOffsetY + container.offset().top + "px",
+      "transform" : "rotate("+o.getAngle()+"deg)"
+  });
+  var hOffsetY = (o.oCoords.mr.y > o.getCenterPoint().y) ? 0 : - 24,
+      hOffsetX = (o.oCoords.mr.x >= o.getCenterPoint().x) ? 0 : - 24;
+  dimession_height.css({
+      "display": 'block',
+      "left": o.oCoords.mr.x + hOffsetX + container.offset().left + "px",
+      "top" : o.oCoords.mr.y + hOffsetY + container.offset().top + "px",
+      "transform" : "rotate("+ (o.getAngle() + 90) +"deg)"
+  });
+}
