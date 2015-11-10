@@ -128,10 +128,13 @@ jQuery(document).ready(function($){
             hoverCursor: "move",
             lockUniScaling: true,
             lockScalingFlip: true,
-            centeredScaling: true
+            centeredScaling: true,
+            alignX: 'min',
+            alignY: 'min'
           });
           cacheImg.pathToFill = obj.pathToFill;
           cacheImg.srcSVG = obj.srcSVG;
+          cacheImg.scaleValue = obj.scaleX;
           cacheImg.setControlsVisibility({mtr:false,tr:false,bl:false});
           canvas.add(cacheImg);
         });
@@ -302,6 +305,7 @@ var loadObjectControl = function(e){ //Load Object control
     hasBorders: false,
     lockMovementX: true,
     lockMovementY: true,
+    selection: false,
     perPixelTargetFind: true, // I love this part
     padding: 4294967295 // get the fuck out, border
   },[10,10,10,10,10,10]);
@@ -635,50 +639,80 @@ var loadObjectControl = function(e){ //Load Object control
      canvas.zoomToPoint({x:c.left,y:c.top},z);
   });
 
+  canvas.on("object:selected",function(){ //Render object when selected
+    var oS = canvas.getActiveObject(),
+        i  = canvas._objects.indexOf(oS);
+    if(oS.type != "image")
+      return;
+    fabric.loadSVGFromURL(oS.srcSVG,function(objects,options){
+        var obj = fabric.util.groupSVGElements(objects,options);
+        obj.pathToFill = oS.pathToFill; //set pathToFill property
+        obj.srcSVG = oS.srcSVG;
+        obj.scaleValue = oS.scaleValue;
+        obj.set({
+          left: oS.left,
+          top: oS.top,
+          hoverCursor: "move",
+          lockUniScaling: true,
+          lockScalingFlip: true,
+          centeredScaling: true
+        });
+        obj.scale(obj.scaleValue);
+        obj.setControlsVisibility({mtr:false,tr:false,bl:false});
+        canvas.remove(oS);
+        canvas.insertAt(obj,i);
+        canvas.setActiveObject(obj);
+      });
+  });
+
+  canvas.on("before:selection:cleared",function(){ //Cache object when clear selected
+    var oS = canvas.getActiveObject(),
+        i  = canvas._objects.indexOf(oS);
+    if(oS.type == 'image' || oS == polWall)
+      return;
+    oS.cloneAsImage(function(cacheImg){ // Using cache for higher performance
+      cacheImg.set({
+        left: oS.left,
+        top: oS.top,
+        hoverCursor: "move",
+        lockUniScaling: true,
+        lockScalingFlip: true,
+        centeredScaling: true,
+      });
+      cacheImg.pathToFill = oS.pathToFill;
+      cacheImg.srcSVG = oS.srcSVG;
+      cacheImg.scaleValue = oS.scaleX;
+      cacheImg.setControlsVisibility({mtr:false,tr:false,bl:false});
+      canvas.remove(oS);
+      canvas.insertAt(cacheImg,i);
+    });
+  });
 });
 
-var zoom_change = function(e) {
+var zoom_change = function(e) { //Change zoom value
   var sl = e.target;
   var tx = document.getElementsByName("zoom_value");
   tx[0].value = sl.value;
 };
 
 fabric.Path.makeClone = function(o,cOffset,ca){ // Custom clone object function 
-  fabric.loadSVGFromURL(o.srcSVG,function(objects,options){
-        var c = fabric.util.groupSVGElements(objects,options);
-        c.hexCode = o.hexCode;
-        c.pathToFill = o.pathToFill; //set pathToFill property
-        c.srcSVG = o.srcSVG;
-        c.scale(o.scaleX);
-        c.set({
-          left: o.left + cOffset,
-          top: o.top + cOffset,
-          hoverCursor: "move",
-          lockUniScaling: true,
-          lockScalingFlip: true,
-          centeredScaling: true
-        });
-        if(c.pathToFill.length > 0)
-        {
-          for(var i = 0; i < c.pathToFill.length;i++)
-          {
-            var j = c.pathToFill[i];
-            c.paths[j].setFill(c.hexCode);
-          }
-        }
-        var cacheImg = c.cloneAsImage(function(cacheImg){ // Using cache for higher performance
+  o.cloneAsImage(function(cacheImg){ // Using cache for higher performance
           cacheImg.set({
-            left: obj.left,
-            top: obj.top,
+            left: o.left + cOffset,
+            top: o.top + cOffset,
             hoverCursor: "move",
             lockUniScaling: true,
             lockScalingFlip: true,
-            centeredScaling: true
+            centeredScaling: true,
+            alignX: 'min',
+            alignY: 'min'
           });
+          cacheImg.scaleValue = o.scaleValue;
+          cacheImg.pathToFill = o.pathToFill;
+          cacheImg.srcSVG = o.srcSVG;
+          cacheImg.setControlsVisibility({mtr:false,tr:false,bl:false});
+          ca.add(cacheImg);
         });
-        cacheImg.setControlsVisibility({mtr:false,tr:false,bl:false});
-        ca.add(cacheImg);
-      });
 }
 
 var getTopPoint = function(o)
@@ -700,7 +734,7 @@ var getTopPoint = function(o)
 }
 
 
-var calcAngle = function(p0,p1,p2)
+var calcAngle = function(p0,p1,p2) //Calc object angle
 {
   var x0 = p0.x,y0 = p0.y,
       x1 = p1.x,y1 = p1.y,
@@ -710,7 +744,7 @@ var calcAngle = function(p0,p1,p2)
   return fabric.util.radiansToDegrees(angle*(-1));
 }
 
-var updateControl = function(o)
+var updateControl = function(o) //Update user control
 {
   var   rotate_button = jQuery(".rotate-button"),
         dimession_width = jQuery(".width-dimession"),

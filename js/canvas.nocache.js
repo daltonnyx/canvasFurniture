@@ -9,7 +9,7 @@ jQuery(document).ready(function($){
   // init object and variable
   var canvas = new fabric.Canvas('tutorial');
   var canvasObj = $("#tutorial");
-  var p,isDragable = false,src,srcW,srcH,centerX,centerY,_isInside = false;
+  var p,isDragable = false,src,srcW,srcH,srcScale,centerX,centerY,_isInside = false;
   var isInside = function(p,obj) {
     if(typeof(p) == 'undefined' || p == null)
       return false;
@@ -75,6 +75,7 @@ jQuery(document).ready(function($){
   $(document).on("mousedown",".svg-item",function(event){
     isDragable = true;
     src = $(event.target).data("svg");
+    srcScale = $(event.target).data("can-scale");
     srcH = $(event.target).height();
     srcW = $(event.target).width();
     centerX = event.pageX - $(event.target).offset().left;
@@ -113,6 +114,13 @@ jQuery(document).ready(function($){
           lockScalingFlip: true,
           centeredScaling: true
         });
+        if(srcScale == 'off')
+        {
+          obj.set({
+            lockScalingX: true,
+            lockScalingY: true
+          });
+        }
         for(var i = 0; i < obj.paths.length; i++)
         {
           if(obj.paths[i].fill == "")
@@ -120,6 +128,7 @@ jQuery(document).ready(function($){
             obj.paths[i].setFill("#ffffff");
             obj.pathToFill.push(i);
           }
+          obj.paths[i].strokeWidth = obj.paths[i].strokeWidth * 10;
         }
         obj.setControlsVisibility({mtr:false,tr:false,bl:false});
         canvas.add(obj);
@@ -209,17 +218,17 @@ jQuery(document).ready(function($){
     updateControl(obj);
     if(canvas._activeGroup != null) //Disable width, height and color control when multiple objects is selected
     {
-      control.find(".control-dimession").css("display","none");
+      control.find(".product-image").css("display","none");
       control.find("#button-color").css("display","none");
       return;
     }
-    control.find(".control-dimession").css("display","inline-block");
+    control.find(".product-image").css("display","inline-block");
     if(obj.pathToFill.length > 0)
       control.find("#button-color").css("display","inline-block");
     else
       control.find("#button-color").css("display","none");
-    control.find("#_w").val(obj.getWidth());
-    control.find("#_h").val(obj.getHeight());
+    // control.find("#_w").val(obj.getWidth());
+    // control.find("#_h").val(obj.getHeight());
     jQuery(".width-dimession").text(Math.round(obj.getWidth()));
     jQuery(".height-dimession").text(Math.round(obj.getHeight()));
   };
@@ -278,7 +287,7 @@ jQuery(document).ready(function($){
   });
 
   //Setting wall
-  var wallPoints = [{x:10,y:10},{x:200,y:10},{x:200,y:150},{x:400,y:150},{x:400,y:300},{x:10,y:300}];
+  var wallPoints = [{x:0,y:0},{x:200,y:0},{x:200,y:150},{x:400,y:150},{x:400,y:300},{x:0,y:300}];
   var polWall = new fabric.LiPolygon(wallPoints,{
     left: 0,
     top:0,
@@ -397,15 +406,20 @@ jQuery(document).ready(function($){
 
   canvas.on("object:selected",function(e){ // Remove the Wall from selected object
     cloneOffset = 10;
-    if(canvas._activeGroup == null)
-      return;
-    canvas._activeGroup.removeWithUpdate(polWall);
     var control = jQuery(".object-control");
+    if(canvas._activeGroup == null)
+    {
+       control.find("#button-group").css("opacity","0.3");
+      return;
+    }
+    canvas._activeGroup.removeWithUpdate(polWall);
+    
     control.css({"display":"block","position":"absolute","left":canvas._activeGroup.left - (control.width()) + "px","top":canvas._activeGroup.top - 50 + "px"});
-    control.find(".control-dimession").css("display","none");
+    control.find(".product-image").css("display","none");
     control.find("#button-color").css("display","none");
-    control.find("#_w").val("");
-    control.find("#_h").val("");
+    control.find("#button-group").css("opacity","1");
+    // control.find("#_w").val("");
+    // control.find("#_h").val("");
 
   });
   
@@ -473,6 +487,32 @@ jQuery(document).ready(function($){
     var c = canvas.getActiveObject();
     var cC = fabric.Path.makeClone(c,cloneOffset,canvas); //Create whole new object with c.options not clone
     cloneOffset += 10;
+  });
+
+  jQuery(document).on("click",".object-control #button-group",function(e){ //Group objects
+    if(canvas._activeGroup == null)
+      return;
+    var selecteds = canvas._activeGroup._objects;
+    var groups = new fabric.Group(selecteds,{
+      left: canvas._activeGroup.left,
+      top: canvas._activeGroup.top,
+      centeredScaling:true
+    });
+    groups.isUserGroup = true;
+    for (var i = 0; i <= selecteds.length - 1; i++) {
+      canvas.remove(selecteds[i]);
+    };
+    for (var i = groups._objects.length - 1; i >= 0; i--) {
+      var gObj = groups._objects[i];
+      gObj.set({
+        left: gObj.left + canvas.viewportTransform[4],
+        top:  gObj.top + canvas.viewportTransform[5],
+      });
+    };
+    canvas.add(groups);
+    groups.setObjectsCoords();
+    canvas.discardActiveGroup(); // Remove control border
+    canvas.discardActiveObject(); // Need both discard
   });
 
   jQuery(document).on("click",".object-control #button-remove",function(e){ // Object remove
@@ -546,7 +586,7 @@ jQuery(document).ready(function($){
 
   //Rotate Button
   var isRotate = false,rF;
-  jQuery(".rotate-button").on('mousedown',function(event) {
+  jQuery(".rotate-button").on('mousedown',function(event) { // Init rotate event
     isRotate = true;
     var control = jQuery(".object-control");
     control.css({
@@ -554,13 +594,13 @@ jQuery(document).ready(function($){
     });
     rF = canvas.getPointer(event);
   });
-  canvas.on('mouse:up', function(event) {
+  canvas.on('mouse:up', function(event) { //Clear rotate evnt
     isRotate = false;
   });
-  jQuery(document).on('mouseup', function(event) {
+  jQuery(document).on('mouseup', function(event) { //Clear rotate evnt
     isRotate = false;
   });
-  canvas.on("mouse:move",function(e){
+  canvas.on("mouse:move",function(e){ // Mouse move event when rotate object
    
     if(!isRotate)
       return;
@@ -592,7 +632,7 @@ jQuery(document).ready(function($){
     rF = rL;
   });
 
-  jQuery(window).on('mousewheel DOMMouseScroll', function(event){
+  jQuery(window).on('mousewheel DOMMouseScroll', function(event){ // Mouse wheel event - Only work with window object
     if(event.target.nodeName != 'CANVAS')
       return;
     event.preventDefault();
@@ -624,7 +664,7 @@ jQuery(document).ready(function($){
   });
 });
 
-var zoom_change = function(e) {
+var zoom_change = function(e) { //Change zoom level
   var sl = e.target;
   var tx = document.getElementsByName("zoom_value");
   tx[0].value = sl.value;
@@ -643,7 +683,9 @@ fabric.Path.makeClone = function(o,cOffset,ca){ // Custom clone object function
           hoverCursor: "move",
           lockUniScaling: true,
           lockScalingFlip: true,
-          centeredScaling: true
+          centeredScaling: true,
+          lockScalingX: o.lockScalingX,
+          lockScalingY: o.lockScalingY
         });
         if(c.pathToFill.length > 0)
         {
@@ -653,13 +695,15 @@ fabric.Path.makeClone = function(o,cOffset,ca){ // Custom clone object function
             c.paths[j].setFill(c.hexCode);
           }
         }
+        for (var i = c.paths.length - 1; i >= 0; i--) {
+          c.paths[i].strokeWidth = c.paths[i].strokeWidth * 10;
+        };
         c.setControlsVisibility({mtr:false,tr:false,bl:false});
         ca.add(c);
       });
 }
 
-var getTopPoint = function(o)
-{
+var getTopPoint = function(o){ // Get smallest Y-point
   var t;
   for(var i in o.oCoords)
   {
@@ -677,8 +721,7 @@ var getTopPoint = function(o)
 }
 
 
-var calcAngle = function(p0,p1,p2)
-{
+var calcAngle = function(p0,p1,p2) { //Calculate Angle when rotating
   var x0 = p0.x,y0 = p0.y,
       x1 = p1.x,y1 = p1.y,
       x2 = p2.x,y2 = p2.y;
@@ -687,8 +730,7 @@ var calcAngle = function(p0,p1,p2)
   return fabric.util.radiansToDegrees(angle*(-1));
 }
 
-var updateControl = function(o)
-{
+var updateControl = function(o) { //Update corner control
   var   rotate_button = jQuery(".rotate-button"),
         dimession_width = jQuery(".width-dimession"),
         dimession_height = jQuery(".height-dimession"),
@@ -721,4 +763,12 @@ var updateControl = function(o)
       "top" : o.oCoords.mr.y + hOffsetY + container.offset().top + "px",
       "transform" : "rotate("+ (o.getAngle() + 90) +"deg)"
   });
+}
+
+var minValue = function(array,property) {
+  var min = array[0][property];
+  for (var i = array.length - 1; i >= 1; i--) {
+    min = Math.min(array[i][property],min);
+  };
+  return min;
 }
