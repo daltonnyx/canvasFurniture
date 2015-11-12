@@ -10,6 +10,7 @@ jQuery(document).ready(function($){
   var canvas = new fabric.Canvas('tutorial');
   var canvasObj = $("#tutorial");
   var p,isDragable = false,src,srcW,srcH,srcScale,centerX,centerY,_isInside = false;
+  const srcMultiple = 45;
   var isInside = function(p,obj) {
     if(typeof(p) == 'undefined' || p == null)
       return false;
@@ -105,7 +106,8 @@ jQuery(document).ready(function($){
         var obj = fabric.util.groupSVGElements(objects,options);
         obj.pathToFill = []; //set pathToFill property
         obj.srcSVG = src;
-        obj.scale(srcW / obj.width);
+        obj.isLock = false;
+        obj.scale(1/srcMultiple);
         obj.set({
           left: canvas.getPointer(e).x - centerX,
           top: canvas.getPointer(e).y - centerY,
@@ -213,24 +215,24 @@ jQuery(document).ready(function($){
     control.css({
       "display":"block",
       "position":"absolute",
-      "left":f.x - (control.width() / 2) + container.offset().left + "px",
-      "top":f.y - control.height() - 50 + container.offset().top + "px"});
+      "left":f.x - (control.width() / 2) - 25 + container.offset().left + "px",
+      "top":f.y - control.height() -15 + container.offset().top + "px"});
     updateControl(obj);
     if(canvas._activeGroup != null) //Disable width, height and color control when multiple objects is selected
     {
-      control.find(".product-image").css("display","none");
+      //control.find(".product-image").css("display","none");
       control.find("#button-color").css("display","none");
       return;
     }
     control.find(".product-image").css("display","inline-block");
-    if(obj.pathToFill.length > 0)
+    if(typeof obj.pathToFill != 'undefined' && obj.pathToFill.length > 0 && obj.isLock === false)
       control.find("#button-color").css("display","inline-block");
     else
       control.find("#button-color").css("display","none");
     // control.find("#_w").val(obj.getWidth());
     // control.find("#_h").val(obj.getHeight());
-    jQuery(".width-dimession").text(Math.round(obj.getWidth()));
-    jQuery(".height-dimession").text(Math.round(obj.getHeight()));
+    jQuery(".width-dimession").text(Math.round(obj.getWidth() * srcMultiple) + 'mm');
+    jQuery(".height-dimession").text(Math.round(obj.getHeight() * srcMultiple) + 'mm');
   };
 
   var fx,fy;
@@ -407,15 +409,35 @@ jQuery(document).ready(function($){
   canvas.on("object:selected",function(e){ // Remove the Wall from selected object
     cloneOffset = 10;
     var control = jQuery(".object-control");
+    control.find("#button-group").addClass('button-group').removeClass('button-ungroup');
     if(canvas._activeGroup == null)
     {
        control.find("#button-group").css("opacity","0.3");
+       if(e.target.isUserGroup)
+      {
+        control.find("#button-group").css("opacity","1");
+        control.find("#button-group").removeClass('button-group').addClass('button-ungroup');
+      }
+      if(e.target.isLock === false)
+      {
+        jQuery(".control-button .uk-button").css("display","inline-block");
+        jQuery('#button-lock').css({
+          display: 'inline-block',
+        }).addClass('button-lock').removeClass('button-unlock');
+      }
+      else
+      {
+        jQuery(".control-button .uk-button").css("display","none");
+        jQuery('#button-lock').css({
+          display: 'inline-block',
+        }).removeClass('button-lock').addClass('button-unlock');
+      }
       return;
     }
     canvas._activeGroup.removeWithUpdate(polWall);
     
     control.css({"display":"block","position":"absolute","left":canvas._activeGroup.left - (control.width()) + "px","top":canvas._activeGroup.top - 50 + "px"});
-    control.find(".product-image").css("display","none");
+    //control.find(".product-image").css("display","none");
     control.find("#button-color").css("display","none");
     control.find("#button-group").css("opacity","1");
     // control.find("#_w").val("");
@@ -426,7 +448,7 @@ jQuery(document).ready(function($){
   jQuery("#saveJSON").click(function(e){ //Save
     e.preventDefault();
     var jsdaa = canvas.toJSON();
-    jQuery("#loadArea").val(JSON.stringify(canvas.toJSON(['srcSVG','hexCode','pathToFill','left','top','strokeWidth','strokeLineCap','fill','hasControls','hasBorders','lockMovementY','lockMovementX','perPixelTargetFind','padding'])));
+    jQuery("#loadArea").val(JSON.stringify(canvas.toJSON(['isLock','srcSVG','hexCode','pathToFill','left','top','strokeWidth','strokeLineCap','fill','hasControls','hasBorders','lockMovementY','lockMovementX','perPixelTargetFind','padding'])));
     UIkit.notify({
     message : '<i class="uk-icon-check"></i> Saved!',
     status  : 'success',
@@ -489,28 +511,65 @@ jQuery(document).ready(function($){
     cloneOffset += 10;
   });
 
-  jQuery(document).on("click",".object-control #button-group",function(e){ //Group objects
+  jQuery(document).on("click",".object-control .button-group",function(e){ //Group objects
+    e.preventDefault();
     if(canvas._activeGroup == null)
       return;
     var selecteds = canvas._activeGroup._objects;
     var groups = new fabric.Group(selecteds,{
       left: canvas._activeGroup.left,
       top: canvas._activeGroup.top,
-      centeredScaling:true
+      angle: canvas._activeGroup.getAngle(),
+      width: canvas._activeGroup.getWidth(), // For zoom in/out
+      height: canvas._activeGroup.getHeight()
     });
     groups.isUserGroup = true;
-    for (var i = 0; i <= selecteds.length - 1; i++) {
-      canvas.remove(selecteds[i]);
-    };
+    groups.isLock = false;
     for (var i = groups._objects.length - 1; i >= 0; i--) {
       var gObj = groups._objects[i];
       gObj.set({
-        left: gObj.left + canvas.viewportTransform[4],
-        top:  gObj.top + canvas.viewportTransform[5],
+        left: (gObj.left + canvas.viewportTransform[4]), // => Force object stay right place
+        top:  (gObj.top + canvas.viewportTransform[5]),
       });
     };
+    for (var i = 0; i <= selecteds.length - 1; i++) {
+      canvas.remove(selecteds[i]);
+    };
+    jQuery(this).removeClass('button-group').addClass('button-ungroup');
     canvas.add(groups);
-    groups.setObjectsCoords();
+    jQuery(this).closest(".object-control").css("display","none");
+    jQuery(".object-button").css("display","none");
+    jQuery(".dimession").css("display","none");
+    canvas.discardActiveGroup(); // Remove control border
+    canvas.discardActiveObject(); // Need both discard
+  });
+
+  jQuery(document).on("click",".object-control .button-ungroup",function(e){ //UnGroup Object
+     e.preventDefault();
+    if(canvas._activeGroup != null)
+      return;
+    var group = canvas.getActiveObject(),
+        center = group.getCenterPoint();
+    var a = fabric.util.degreesToRadians(group.getAngle());
+    var cosa = Math.cos(a),sina = Math.sin(a);
+    for (var i = 0; i <= group._objects.length - 1; i++) {
+      var item = group._objects[i].clone(function(item){ // <= use clone and callback function
+        item.set({
+          left: center.x + (item.left * cosa - item.top * sina), // Set object position 
+          top:  center.y + (item.left * sina + item.top * cosa),
+          angle: item.getAngle() + group.getAngle(),
+          hasControls: true,
+          hasBorders:true 
+        });
+        item.setControlsVisibility({mtr:false,tr:false,bl:false,tl:true,br:true});
+        canvas.add(item);
+      },['isLock','srcSVG','hexCode','lockScalingX','lockScalingY','lockUniScaling','centeredScaling','centeredScaling','rotatingPointOffset','pathToFill','left','top','strokeWidth','strokeLineCap','fill','hasControls','hasBorders','scaleX','scaleY']);
+    };
+    canvas.remove(group);
+    jQuery(this).addClass('button-group').removeClass('button-ungroup');
+    jQuery(this).closest(".object-control").css("display","none");
+    jQuery(".object-button").css("display","none");
+    jQuery(".dimession").css("display","none");
     canvas.discardActiveGroup(); // Remove control border
     canvas.discardActiveObject(); // Need both discard
   });
@@ -537,6 +596,34 @@ jQuery(document).ready(function($){
     jQuery(".object-button").css("display","none");
     jQuery(".dimession").css("display","none");
   });
+
+   jQuery(document).on("click",".object-control #button-lock",function(e){
+    e.preventDefault();
+    if(canvas._activeGroup != null) // For group
+    {
+        return;
+    }
+    var cR = canvas.getActiveObject();
+    if(cR.isLock === false)
+    {
+      cR.isLock = true;
+      jQuery(".control-button .uk-button").css("display","none");
+      jQuery(this).css({
+        display: 'inline-block',
+      }).removeClass('button-lock').addClass('button-unlock');
+    }
+    else
+    {
+      cR.isLock = false;
+      jQuery(".control-button .uk-button").css("display","inline-block");
+      if(typeof cR.pathToFill == 'undefined' || cR.pathToFill.length == 0)
+      {
+        jQuery("#button-color").css("display","none");
+      }
+      jQuery(this).addClass('button-lock').removeClass('button-unlock');
+    }
+    updateControl(cR);
+   });
 
   jQuery(document).on("mousedown",".object-control .color-hex",function(){ //Color-change
     var hexCode = "#"+jQuery(this).data("color");
@@ -676,6 +763,7 @@ fabric.Path.makeClone = function(o,cOffset,ca){ // Custom clone object function
         c.hexCode = o.hexCode;
         c.pathToFill = o.pathToFill; //set pathToFill property
         c.srcSVG = o.srcSVG;
+        c.isLock = o.isLock;
         c.scale(o.scaleX);
         c.set({
           left: o.left + cOffset,
@@ -736,6 +824,7 @@ var updateControl = function(o) { //Update corner control
         dimession_height = jQuery(".height-dimession"),
         delete_button = jQuery(".delete-button"),
         container = jQuery("#tutorial");
+
   rotate_button.css({
       "display": 'block',
       "left": o.oCoords.bl.x - 10 + container.offset().left + "px",
@@ -747,22 +836,30 @@ var updateControl = function(o) { //Update corner control
       "left": o.oCoords.tr.x - 8 + container.offset().left + "px",
       "top":  o.oCoords.tr.y - 8 + container.offset().top + "px"
   });
-  var dOffsetY = (o.oCoords.mt.y > o.getCenterPoint().y) ? 0 : - 24,
-      dOffsetX = (o.oCoords.mt.x >= o.getCenterPoint().x) ? 0 : - 24;
+  var dOffsetY = (o.oCoords.mt.y > o.getCenterPoint().y) ? 0 : -20,
+      dOffsetX = (o.oCoords.mt.x >= o.getCenterPoint().x) ? -26 : - 30;
   dimession_width.css({
       "display": 'block',
       "left": o.oCoords.mt.x + dOffsetX + container.offset().left + "px",
       "top" : o.oCoords.mt.y + dOffsetY + container.offset().top + "px",
-      "transform" : "rotate("+o.getAngle()+"deg)"
+      "transform" : "rotate("+o.getAngle()+"deg)",
+      "font-size" : 14 * o.canvas.getZoom() + "px"
   });
-  var hOffsetY = (o.oCoords.mr.y > o.getCenterPoint().y) ? 0 : - 24,
-      hOffsetX = (o.oCoords.mr.x >= o.getCenterPoint().x) ? 0 : - 24;
+  var hOffsetY = (o.oCoords.mr.y > o.getCenterPoint().y) ? -5 : - 15,
+      hOffsetX = (o.oCoords.mr.x >= o.getCenterPoint().x) ? -20 : - 34;
   dimession_height.css({
       "display": 'block',
       "left": o.oCoords.mr.x + hOffsetX + container.offset().left + "px",
       "top" : o.oCoords.mr.y + hOffsetY + container.offset().top + "px",
-      "transform" : "rotate("+ (o.getAngle() + 90) +"deg)"
+      "transform" : "rotate("+ (o.getAngle() + 90) +"deg)",
+      "font-size" : 14 * o.canvas.getZoom() + "px"
   });
+   if(o.isLock == true)
+  {
+    rotate_button.css("display","none");
+    delete_button.css("display","none");
+    return;
+  }
 }
 
 var minValue = function(array,property) {
