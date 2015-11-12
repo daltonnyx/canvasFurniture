@@ -574,6 +574,32 @@ jQuery(document).ready(function($){
     canvas.discardActiveObject(); // Need both discard
   });
 
+  jQuery(document).on("click",".object-control #button-rotate-right",function(e){
+    e.preventDefault();
+    if(canvas._activeGroup != null) // For group
+    {
+      return;
+    }
+    var cR = canvas.getActiveObject();
+    cR.rotate(cR.getAngle() + 45);
+    cR.setCoords();
+    canvas.renderAll();
+    updateControl(cR);
+  });
+
+  jQuery(document).on("click",".object-control #button-rotate-left",function(e){
+    e.preventDefault();
+    if(canvas._activeGroup != null) // For group
+    {
+      return;
+    }
+    var cR = canvas.getActiveObject();
+    cR.rotate(cR.getAngle() - 45);
+    cR.setCoords();
+    canvas.renderAll();
+    updateControl(cR);
+  });
+
   jQuery(document).on("click",".object-control #button-remove",function(e){ // Object remove
     e.preventDefault();
     if(canvas._activeGroup != null) // For group
@@ -597,7 +623,7 @@ jQuery(document).ready(function($){
     jQuery(".dimession").css("display","none");
   });
 
-   jQuery(document).on("click",".object-control #button-lock",function(e){
+   jQuery(document).on("click",".object-control #button-lock",function(e){ // Lock and unlock button
     e.preventDefault();
     if(canvas._activeGroup != null) // For group
     {
