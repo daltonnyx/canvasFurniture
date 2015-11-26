@@ -1,6 +1,6 @@
 <!DOCTYPE HTML>
 
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
 
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
@@ -38,12 +38,17 @@
       <img src="table.jpg" data-svg="table.svg" width="100px;" data-can-scale="off" class="svg-item" draggable="true" />
       <img src="Glen-Gas-Stove.jpeg" data-svg="bepga.svg" data-can-scale="off" width="100px;" class="svg-item" draggable="true" />
 	  <img src="sofa.jpeg" data-svg="Sofa-Model.svg" data-can-scale="off" class="svg-item" width="100px;" draggable="true" />
-	  <h2>có thể thay đổi kích thước</h2>
+	  <h2>Cửa</h2>
+	  <img src="door1.svg" data-svg="door1.svg" data-can-scale="on" data-on-wall="{'axis':'x','offset':0}" class="svg-item" width="100px;" draggable="true" />
+	  <img src="door2.svg" data-svg="door2.svg" data-can-scale="on" data-on-wall="{'axis':'x','offset':35}" class="svg-item" width="100px;" draggable="true" />
+	  <img src="door3.svg" data-svg="door3.svg" data-can-scale="on" data-on-wall="{'axis':'x','offset':18}" class="svg-item" width="100px;" draggable="true" />
+	  <img src="door4.svg" data-svg="door4.svg" data-can-scale="on" data-on-wall="{'axis':'x','offset':20}" class="svg-item" width="100px;" draggable="true" />
+	  <!-- <h2>có thể thay đổi kích thước</h2>
 	  <img src="sink.svg" data-svg="sink.svg" width="50px;" class="svg-item" draggable="true" />
       <img src="table_2.svg" data-svg="table_2.svg" width="50px;" class="svg-item" draggable="true" />
       <img src="table.svg" data-svg="table.svg" width="50px;"  class="svg-item" draggable="true" />
       <img src="bepga.svg" data-svg="bepga.svg" width="50px;" class="svg-item" draggable="true" />
-	  <img src="Sofa-Model.svg" data-svg="Sofa-Model.svg" class="svg-item" width="100px;" draggable="true" />
+	  <img src="Sofa-Model.svg" data-svg="Sofa-Model.svg" class="svg-item" width="100px;" draggable="true" /> -->
     </div>
     <div class="control-container">
       <div class="zoom uk-vertical-align">
@@ -90,9 +95,12 @@
 			<div class="uk-display-block form-control uk-margin">
 				<span>y:</span><input name="_y" id="_y" class="uk-form-width-mini" type="number" />
 			</div>
+			<div class="uk-display-block form-control uk-margin">
+				<span>diện tích: </span> <span id="floorArea"></span>
+			</div>
 			<a id="add-cor" class="hidden uk-button uk-button-primary" href="#">add</a>
 			<a id="delete-cor" class="hidden uk-button uk-button-danger" href="#">delete</a>
-		</div>
+</div>
 		<div class="control-container object-control uk-border-rounded uk-grid-collapse" style="display:none;">
 			<div class="product-image uk-width-1-3">
 				
@@ -121,6 +129,8 @@
 					</div>
 					<a href="#" class="uk-button button-lock" id="button-lock"></a>
 				</div>
+
+
 			</div>
 		</div>
 		

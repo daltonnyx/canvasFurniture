@@ -9,8 +9,8 @@ jQuery(document).ready(function($){
   // init object and variable
   var canvas = new fabric.Canvas('tutorial');
   var canvasObj = $("#tutorial");
-  var p,isDragable = false,src,srcW,srcH,srcScale,centerX,centerY,_isInside = false;
-  const srcMultiple = 45;
+  var p,isDragable = false,src,srcW,srcH,srcScale,centerX,centerY,_isInside = false,srcOnWall;
+  const srcMultiple = 50;
   var isInside = function(p,obj) {
     if(typeof(p) == 'undefined' || p == null)
       return false;
@@ -75,8 +75,15 @@ jQuery(document).ready(function($){
   //Get SVG file to import
   $(document).on("mousedown",".svg-item",function(event){
     isDragable = true;
+    srcOnWall = null;
     src = $(event.target).data("svg");
     srcScale = $(event.target).data("can-scale");
+    if(event.target.hasAttribute('data-on-wall')) // Stick line object for window, door, etc...
+    {
+      srcOnWall = $(event.target).data("on-wall");
+      srcOnWall = srcOnWall.replace(/\'/g,'"');
+      srcOnWall = JSON.parse(srcOnWall);
+    }
     srcH = $(event.target).height();
     srcW = $(event.target).width();
     centerX = event.pageX - $(event.target).offset().left;
@@ -108,13 +115,19 @@ jQuery(document).ready(function($){
         obj.srcSVG = src;
         obj.isLock = false;
         obj.scale(1/srcMultiple);
+        if(srcOnWall != null)
+        {
+          obj.onWall = srcOnWall;
+          obj.onStick = false;
+        }
         obj.set({
           left: canvas.getPointer(e).x - centerX,
           top: canvas.getPointer(e).y - centerY,
           hoverCursor: "move",
           lockUniScaling: true,
           lockScalingFlip: true,
-          centeredScaling: true
+          centeredScaling: true,
+          centeredRotation: true
         });
         if(srcScale == 'off')
         {
@@ -185,6 +198,7 @@ jQuery(document).ready(function($){
       control.find("#_i").val(c);
       control.find("#_x").val(f.x);
       control.find("#_y").val(f.y);
+      control.find("#floorArea").text(polWall.calcArea() / srcMultiple + " mm2");
       control.find("#delete-cor").css("display","block");
       control.find("#add-cor").css("display","none");
       return;
@@ -199,6 +213,7 @@ jQuery(document).ready(function($){
         control.find("#_i").val(l);
         control.find("#_x").val(f.x);
         control.find("#_y").val(f.y);
+        control.find("#floorArea").text(polWall.calcArea() / srcMultiple + " mm2");
         control.find("#add-cor").css("display","block");
         control.find("#delete-cor").css("display","none");
         return;
@@ -267,15 +282,7 @@ jQuery(document).ready(function($){
   canvas.on("mouse:move",function(e){ // Use as less function as you can
     if(isMoveObject == true) //Update object when mouse close to edge
     {
-        e = e.e;
-        if(e.offsetX < 10)
-          canvas.relativePan({x: 15, y:0});
-        else if(e.offsetX > canvas.getWidth() - 10)
-            canvas.relativePan({x: -15, y:0});
-        if(e.offsetY < 10)
-          canvas.relativePan({x: 0, y:15});
-        else if(e.offsetY > canvas.getHeight() - 10)
-          canvas.relativePan({x:0,y:-15});
+
         return;
     }
     if(isHold == false)
@@ -322,14 +329,15 @@ jQuery(document).ready(function($){
     return false;
   };
 
-  var onLineWall = function(p,w){ //Check on wall line
+  var onLineWall = function(p,w,k){ //Check on wall line
     p = w.toLocalPoint(p,'center','center');
+    k = typeof k !== 'undefined' ? k : 5;
     for(var i = 0; i < w.points.length;i++)
     {
       var p1 = w.points[i];
       var p2  = (i == w.points.length - 1) ? w.points[0] : w.points[i+1];
       var d = getDistance(p,p1,p2);
-      if((d < 5) && (isBetween(p,p1,p2)) )
+      if((d < k) && (isBetween(p,p1,p2)) )
         return i;
     }
     return -1;
@@ -375,14 +383,14 @@ jQuery(document).ready(function($){
       }
     }
   });
-
+  var moX,moY; 
   canvas.on("mouse:move",function(e){ // Change wall line, point position
     if(isChangeCorner != -1)
     {
       var i = isChangeCorner;
       e = e.e;
-      var moX = polWall.toLocalPoint(canvas.getPointer(e),'center','center').x - fx;
-      var moY = polWall.toLocalPoint(canvas.getPointer(e),'center','center').y - fy;
+      moX = polWall.toLocalPoint(canvas.getPointer(e),'center','center').x - fx;
+      moY = polWall.toLocalPoint(canvas.getPointer(e),'center','center').y - fy;
       fx = polWall.toLocalPoint(canvas.getPointer(e),'center','center').x;
       fy = polWall.toLocalPoint(canvas.getPointer(e),'center','center').y;
       polWall.points[i].x += moX;
@@ -395,8 +403,8 @@ jQuery(document).ready(function($){
         return;
       var i = isChangeWall,j = (i == polWall.points.length - 1) ? 0 : i + 1;
       e = e.e;
-      var moX = polWall.toLocalPoint(canvas.getPointer(e),'center','center').x - fx;
-      var moY = polWall.toLocalPoint(canvas.getPointer(e),'center','center').y - fy;
+      moX = polWall.toLocalPoint(canvas.getPointer(e),'center','center').x - fx;
+      moY = polWall.toLocalPoint(canvas.getPointer(e),'center','center').y - fy;
       fx = polWall.toLocalPoint(canvas.getPointer(e),'center','center').x;
       fy = polWall.toLocalPoint(canvas.getPointer(e),'center','center').y;
       polWall.points[i].x += moX;
@@ -775,6 +783,207 @@ jQuery(document).ready(function($){
     }
     canvas.zoomToPoint({x:c.left,y:c.top},z);
   });
+
+
+  ////////////////////////////////////////////////////////////////////////////
+  /////////////             Door and window section              /////////////
+  ////////////////////////////////////////////////////////////////////////////
+  canvas.on("object:moving",function(e){
+    var o = e.target;
+    e = e.e;
+    //console.log(e.offsetX + "-" + e.offsetY);
+    p = canvas.getPointer(e);
+    var l = o.onLine,m;
+    if(typeof o.onLine != 'undefined')
+    {
+      m = (l == polWall.points.length - 1) ? 0 : l + 1;
+      if(typeof polWall.points[m].byPassLines != 'undefined')
+        polWall.points[m].byPassLines = [];
+    }
+    if(typeof o.onWall == 'undefined')
+      return;
+    l = onLineWall(p,polWall,15);
+    if(l == -1)
+      return;
+    m = (l == polWall.points.length - 1) ? 0 : l + 1;
+    var c = o.getCenterPoint(),
+        p1 = polWall.points[l], p2 = polWall.points[m];
+    c = polWall.toLocalPoint(c,'center','center');
+    var dc = getDistance(c,p1,p2);
+    if(Math.abs(dc) < 30 && o.onStick || Math.abs(dc) > 50 && !o.onStick)
+    {
+      return;
+    }
+    var s = c,a;
+    if(o.onWall.axis = 'x')
+    {
+      a =Math.atan((p2.y - p1.y)/(p2.x - p1.x));
+      s.x -= o.onWall.offset * Math.sin(a);
+      s.y += o.onWall.offset * Math.cos(a);
+      a = fabric.util.radiansToDegrees(a);
+    }
+    else if(o.onWall.axis = 'y')
+    {
+      a = Math.atan((p2.y - p1.y)/(p2.x - p1.x));
+      s.x += o.onWall.offset * Math.cos(a);
+      s.y -= o.onWall.offset * Math.sin(a);
+      a = fabric.util.radiansToDegrees(a);
+      a = 90 - a;
+    }
+    var sP = lerp(p1,p2,s);
+    var oA = o.getAngle();
+    var cM = canvas.getPointer(e);
+    o.rotate(a);
+    o.set({
+      left: o.left + (sP.x - s.x),
+      top: o.top + (sP.y - s.y),
+      originX: "left",
+      originY: "top"
+    });
+    var oX = canvas._currentTransform.offsetX,
+        oY = canvas._currentTransform.offsetY,
+        signA = (a-oA)?(a-oA)<0?1:-1:-1;
+    o.onLine = l;
+    var xx = polWall.toLocalPoint({x:o.left,y:o.top},"center","center");
+    o.loX = polWall.points[l].x - xx.x;
+    o.loY = polWall.points[l].y - xx.y;
+    //Update mouse offset related to object
+    canvas._currentTransform.offsetX = oX * Math.cos(fabric.util.degreesToRadians(Math.abs(a - oA))) +
+                                      oY * Math.sin(fabric.util.degreesToRadians(Math.abs(a - oA))) * signA;
+    canvas._currentTransform.offsetY = oY * Math.cos(fabric.util.degreesToRadians(Math.abs(a - oA))) -
+                                      oX * Math.sin(fabric.util.degreesToRadians(Math.abs(a - oA))) * signA;
+    var idx = canvas._objects.indexOf(o);
+    if(polWall.doors.indexOf(idx) == -1)
+      polWall.doors.push(idx);
+    o.setCoords();
+    var ltl = polWall.toLocalPoint(o.oCoords.tl,"center","center"),
+        ltr = polWall.toLocalPoint(o.oCoords.tr,"center","center");
+    var lerpTl = lerp(p1,p2,ltl),
+        lerpTr = lerp(p1,p2,ltr);
+    var lbsp = new fabric.Point(lerpTl.x,lerpTl.y),
+        lbep = new fabric.Point(lerpTr.x,lerpTr.y);
+    var bypassLine = new fabric.Line();
+    bypassLine.x1 = lbsp.x; bypassLine.y1 = lbsp.y;
+    bypassLine.x2 = lbep.x; bypassLine.y2 = lbep.y;
+    polWall.points[m].byPassLines = [];
+    polWall.points[m].byPassLines.push(bypassLine);
+  });
+  var lerp = function(pt1,pt2,pt)
+  {
+    var r = {};
+    var U = ((pt.y - pt1.y) * (pt2.y - pt1.y)) + ((pt.x - pt1.x) * (pt2.x - pt1.x));
+    var Udenom = Math.pow(pt2.y - pt1.y, 2) + Math.pow(pt2.x - pt1.x, 2);
+    U /= Udenom;
+    r.y = pt1.y + (U * (pt2.y - pt1.y));
+    r.x = pt1.x + (U * (pt2.x - pt1.x));
+    return r;
+  }
+  canvas.on("mouse:move",function(e){
+    if(isChangeWall == -1 && isChangeCorner == -1)
+      return;
+    for (var i = polWall.doors.length - 1; i >= 0; i--) {
+      var o = canvas._objects[polWall.doors[i]],
+          l = o.onLine,
+          m = (l == polWall.points.length - 1) ? 0 : l + 1,
+          c = o.getCenterPoint(),
+          p1 = polWall.points[l], p2 = polWall.points[m];
+        c = polWall.toLocalPoint(c,'center','center');
+        var dc = getDistance(c,p1,p2);
+        if(Math.abs(dc) < 50 && o.onStick || Math.abs(dc) > 50 && !o.onStick)
+        {
+          polWall.doors.splice(i,1);
+          return;
+        }
+        var s = c,a;
+        if(o.onWall.axis == 'x')
+        {
+          a =Math.atan((p2.y - p1.y)/(p2.x - p1.x));
+          s.x -= o.onWall.offset * Math.sin(a);
+          s.y += o.onWall.offset * Math.cos(a);
+          a = fabric.util.radiansToDegrees(a);
+        }
+        else if(o.onWall.axis == 'y')
+        {
+          a = Math.atan((p2.y - p1.y)/(p2.x - p1.x));
+          s.x += o.onWall.offset * Math.cos(a);
+          s.y -= o.onWall.offset * Math.sin(a);
+          a = fabric.util.radiansToDegrees(a);
+          a = 90 - a;
+        }
+        var sP = lerp(p1,p2,s),
+            oA = o.getAngle(),
+            cM = canvas.getPointer(e),
+            iM = (isChangeWall == -1) ? isChangeCorner : isChangeWall,
+            iN = (iM == 0) ? polWall.points.length - 1 : iM - 1,
+            iO = (isChangeWall == -1) ? -1 : (iM == polWall.points.length - 1) ? 0 : iM + 1;
+        o.rotate(a);
+        if((l == iM) || (l == iN) || (l == iO))
+        {
+          o.set({
+            left: o.left + moX + (sP.x - s.x),
+            top: o.top + moY + (sP.y - s.y),
+            originX: "left",
+            originY: "top"
+          });
+        }
+        else
+        {
+          o.set({
+            left: o.left + (sP.x - s.x),
+            top: o.top  + (sP.y - s.y),
+            originX: "left",
+            originY: "top"
+          });
+        }
+         o.setCoords();
+        var ltl = polWall.toLocalPoint(o.oCoords.tl,"center","center"),
+            ltr = polWall.toLocalPoint(o.oCoords.tr,"center","center");
+        var lerpTl = lerp(p1,p2,ltl),
+            lerpTr = lerp(p1,p2,ltr);
+        var lbsp = new fabric.Point(lerpTl.x,lerpTl.y),
+            lbep = new fabric.Point(lerpTr.x,lerpTr.y);
+        var bypassLine = new fabric.Line();
+        bypassLine.x1 = lbsp.x; bypassLine.y1 = lbsp.y;
+        bypassLine.x2 = lbep.x; bypassLine.y2 = lbep.y;
+        polWall.points[m].byPassLines = [];
+        polWall.points[m].byPassLines.push(bypassLine);
+    };
+  });
+
+  canvas.on("mouse:up",function(e){
+    var o;
+    for (var i = polWall.doors.length - 1; i >= 0; i--) {
+      o = canvas._objects[polWall.doors[i]];
+      o.setCoords();
+    }; 
+    canvas.renderAll();
+  });
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 });
 
 var zoom_change = function(e) { //Change zoom level
@@ -801,6 +1010,8 @@ fabric.Path.makeClone = function(o,cOffset,ca){ // Custom clone object function
           lockScalingX: o.lockScalingX,
           lockScalingY: o.lockScalingY
         });
+        if(typeof c.hexCode == 'undefined')
+          c.hexCode = "#ffffff";
         if(c.pathToFill.length > 0)
         {
           for(var i = 0; i < c.pathToFill.length;i++)
@@ -869,16 +1080,16 @@ var updateControl = function(o) { //Update corner control
       "left": o.oCoords.mt.x + dOffsetX + container.offset().left + "px",
       "top" : o.oCoords.mt.y + dOffsetY + container.offset().top + "px",
       "transform" : "rotate("+o.getAngle()+"deg)",
-      "font-size" : 14 * o.canvas.getZoom() + "px"
+      "font-size" : 12 * o.canvas.getZoom() + "px"
   });
-  var hOffsetY = (o.oCoords.mr.y > o.getCenterPoint().y) ? -5 : - 15,
-      hOffsetX = (o.oCoords.mr.x >= o.getCenterPoint().x) ? -20 : - 34;
+  var hOffsetY = (o.oCoords.mr.y > o.getCenterPoint().y) ? -5 : - 20,
+      hOffsetX = (o.oCoords.mr.x >= o.getCenterPoint().x) ? -15 : - 34;
   dimession_height.css({
       "display": 'block',
       "left": o.oCoords.mr.x + hOffsetX + container.offset().left + "px",
       "top" : o.oCoords.mr.y + hOffsetY + container.offset().top + "px",
       "transform" : "rotate("+ (o.getAngle() + 90) +"deg)",
-      "font-size" : 14 * o.canvas.getZoom() + "px"
+      "font-size" : 12 * o.canvas.getZoom() + "px"
   });
    if(o.isLock == true)
   {
