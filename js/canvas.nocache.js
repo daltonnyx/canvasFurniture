@@ -9,8 +9,8 @@ jQuery(document).ready(function($){
   // init object and variable
   var canvas = new fabric.Canvas('tutorial');
   var canvasObj = $("#tutorial");
-  var p,isDragable = false,src,srcW,srcH,srcScale,centerX,centerY,_isInside = false,srcOnWall;
-  const srcMultiple = 50;
+  var p,isDragable = false,src,srcW,srcH,srcName,srcImage,srcZdata,srcPrice,srcScale,centerX,centerY,_isInside = false,srcOnWall;
+  const srcMultiple = 20;
   var isInside = function(p,obj) {
     if(typeof(p) == 'undefined' || p == null)
       return false;
@@ -77,7 +77,11 @@ jQuery(document).ready(function($){
     isDragable = true;
     srcOnWall = null;
     src = $(event.target).data("svg");
+    srcName = $(event.target).data("name");
     srcScale = $(event.target).data("can-scale");
+    srcZdata = $(event.target).data("zdata");
+    srcImage = $(event.target).data('image');
+    srcPrice = $(event.target).data('price');
     if(event.target.hasAttribute('data-on-wall')) // Stick line object for window, door, etc...
     {
       srcOnWall = $(event.target).data("on-wall");
@@ -113,13 +117,12 @@ jQuery(document).ready(function($){
         var obj = fabric.util.groupSVGElements(objects,options);
         obj.pathToFill = []; //set pathToFill property
         obj.srcSVG = src;
+        obj.ProName = srcName;
         obj.isLock = false;
         obj.scale(1/srcMultiple);
-        if(srcOnWall != null)
-        {
-          obj.onWall = srcOnWall;
-          obj.onStick = false;
-        }
+        obj.zData = srcZdata;
+        obj.realImage = srcImage;
+        obj.price = srcPrice;
         obj.set({
           left: canvas.getPointer(e).x - centerX,
           top: canvas.getPointer(e).y - centerY,
@@ -129,6 +132,11 @@ jQuery(document).ready(function($){
           centeredScaling: true,
           centeredRotation: true
         });
+        if(srcOnWall != null)
+        {
+          obj.onWall = srcOnWall;
+          obj.onStick = false;
+        }
         if(srcScale == 'off')
         {
           obj.set({
@@ -164,7 +172,7 @@ jQuery(document).ready(function($){
   $('input[name="zoom_slider"]').on('input',zoom);
 
   // Pans control
-  var isHold = false,isMoveObject = false;
+  var isHold = false,isMoveObject = false,isPermentPans = false;
   canvas.on("mouse:up",function(e){//Mouse up event
     // Reset check state - No need to check condition
       isHold = false;
@@ -174,6 +182,8 @@ jQuery(document).ready(function($){
       isChangeCorner = -1;
       isChangeWall = -1;
       canvas.renderAll();
+      if(isPermentsZoom || isPermentPans)
+        return;
     //If pointer still in point area then load control
     if(this.findTarget(e.e) == polWall){
       e = e.e;
@@ -190,7 +200,8 @@ jQuery(document).ready(function($){
   var loadWallControl = function(e){//Load Wall control
     var f = canvas.getPointer(e),
         m = {x:e.pageX,y:e.pageY},
-        c = onCorner(f,polWall);
+        c = onCorner(f,polWall),
+        l = onLineWall(f,polWall);  
     if(c != -1){
       var control = jQuery(".wall-control");
       var p = polWall.points[c];
@@ -198,26 +209,37 @@ jQuery(document).ready(function($){
       control.find("#_i").val(c);
       control.find("#_x").val(f.x);
       control.find("#_y").val(f.y);
-      control.find("#floorArea").text(polWall.calcArea() / srcMultiple + " mm2");
+      control.find("#floorArea").text((polWall.calcArea() * Math.pow(srcMultiple,2) / 1000000).toFixed(2) + " m2");
       control.find("#delete-cor").css("display","block");
       control.find("#add-cor").css("display","none");
       return;
     }
-    else
+    else if(l != -1)
     {
-      var l = onLineWall(f,polWall);
-      if(l != -1)
-      {
         var control = jQuery(".wall-control");
         control.css({"display":"block","position":"absolute","left":m.x - 120 + "px","top":m.y - 80 + "px"});
         control.find("#_i").val(l);
         control.find("#_x").val(f.x);
         control.find("#_y").val(f.y);
-        control.find("#floorArea").text(polWall.calcArea() / srcMultiple + " mm2");
+        control.find("#floorArea").text((polWall.calcArea() * Math.pow(srcMultiple,2) / 1000000).toFixed(2) + " m2");
         control.find("#add-cor").css("display","block");
         control.find("#delete-cor").css("display","none");
         return;
-      }
+    }
+    else
+    {
+      var m = {x:e.pageX,y:e.pageY}, //Load floor control
+          control = jQuery(".object-control"),
+          area = (polWall.calcArea() * Math.pow(srcMultiple,2) / 1000000).toFixed(2);
+      control.css({
+      "display":"block",
+      "position":"absolute",
+      "left":m.x - (control.width() / 2) - 25 + "px",
+      "top":m.y - control.height() -15 +  "px"});
+      control.addClass('floor-control');
+      control.find("h4.product-name").text(polWall.ProName);
+      control.find(".product-area span.value").text(area + "m2");
+      control.find(".product-price .value").text(currencyFormat(area * polWall.floorPrice));
     }
   };
 
@@ -227,12 +249,28 @@ jQuery(document).ready(function($){
         control = jQuery(".object-control"),
         container = jQuery("#tutorial"),
         f = getTopPoint(obj);
+    //Reset everything
+    control.find("h4.product-name").text("No Name");
+    control.find(".product-image").html('');
+    control.find(".product-price .value").text('');
+    control.find('.product-price').css('display', 'block');
     control.css({
       "display":"block",
       "position":"absolute",
       "left":f.x - (control.width() / 2) - 25 + container.offset().left + "px",
       "top":f.y - control.height() -15 + container.offset().top + "px"});
     updateControl(obj);
+    control.removeClass("floor-control");
+    if(typeof obj.ProName != 'undefined')
+      control.find("h4.product-name").text(obj.ProName);
+    if(typeof obj.realImage != 'undefined' && obj.realImage != undefined){
+      var realImg = document.createElement('IMG');
+      realImg.src = obj.realImage;
+      $(realImg).css('width', '100%');
+      control.find(".product-image").html(realImg);
+    }
+    if(typeof obj.price != 'undefined')
+        control.find('.product-price .value').text(currencyFormat(obj.price));
     if(canvas._activeGroup != null) //Disable width, height and color control when multiple objects is selected
     {
       //control.find(".product-image").css("display","none");
@@ -244,21 +282,25 @@ jQuery(document).ready(function($){
       control.find("#button-color").css("display","inline-block");
     else
       control.find("#button-color").css("display","none");
-    // control.find("#_w").val(obj.getWidth());
-    // control.find("#_h").val(obj.getHeight());
-    jQuery(".width-dimession").text(Math.round(obj.getWidth() * srcMultiple) + 'mm');
-    jQuery(".height-dimession").text(Math.round(obj.getHeight() * srcMultiple) + 'mm');
+    control.find(".product-dimession li.x .value").text((obj.getWidth() * srcMultiple / 1000).toFixed(2) + ' m');
+    control.find(".product-dimession li.y .value").text((obj.getHeight() * srcMultiple / 1000).toFixed(2) + ' m');
+    if(typeof obj.zData != 'undefined')
+      control.find(".product-dimession li.z .value").text(obj.zData / 1000 + ' m');
+    jQuery(".width-dimession").text((obj.getWidth() * srcMultiple / 1000).toFixed(2) + ' m');
+    jQuery(".height-dimession").text((obj.getHeight() * srcMultiple / 1000).toFixed(2) + ' m');
   };
 
   var fx,fy;
   canvas.on("mouse:down",function(e){ //Change canvas state
     e = e.e; //Replace event object with originalEvent
+    if(isPermentsZoom == true)
+      return;
     if(this.findTarget(e))
     {
       isMoveObject = true;
       return;
     }
-    if(charCode == 17)
+    if(charCode == 17 || isPermentPans == true)
     {
       isHold = true;
       canvas.setCursor('grabbing');
@@ -280,23 +322,93 @@ jQuery(document).ready(function($){
 
   //Pans and wall line interactive
   canvas.on("mouse:move",function(e){ // Use as less function as you can
-    if(isMoveObject == true) //Update object when mouse close to edge
-    {
-
-        return;
-    }
-    if(isHold == false)
-      return;
     e = e.e;
+    if(isChangeCorner != -1 || isChangeWall != -1)
+      return;
     var moX = e.offsetX - fx;
     var moY = e.offsetY - fy;
     fx = e.offsetX;
     fy = e.offsetY;
+    if(isMoveObject == true) //Update object when mouse close to edge
+    {
+        return;
+    }
+    if(isHold == false)
+      return;
     canvas.relativePan({x: moX, y: moY});
   });
 
+  //Toolbar Section
+
+  var isreverseZoom = false,
+      resetState = function(){
+        isPermentPans = false;
+        isPermentsZoom = false;
+        isHold = false;
+        isMoveObject = false;
+        getCanvasElement(canvas).removeClass('grab zoomin');
+        jQuery('.toolbar div').removeClass('active');
+      },
+      getCanvasElement = function(canvas){
+        var canvasElement = canvas.getElement(),
+        upper = jQuery(canvasElement).siblings('canvas');
+        return jQuery(upper);
+      
+      };
+
+  jQuery(".toolbar div.pans").on('click', 'span.pans', function(event) {
+    resetState();
+    isPermentPans = true;
+    getCanvasElement(canvas).addClass('grab');
+    var d = event.delegateTarget;
+    jQuery(d).addClass('active');
+  });
+
+  jQuery(".toolbar div.pointer").on('click', 'span.pointer', function(event) {
+    resetState();
+    var d = event.delegateTarget;
+    jQuery(d).addClass('active');
+  });
+
+
+  //Zoom toolbar
+  jQuery(".toolbar div.zoom-pointer").on('click', 'span.zoom-pointer', function(event) {
+    resetState();
+    isPermentsZoom = true;
+    getCanvasElement(canvas).addClass('zoomin');
+    var d = event.delegateTarget;
+    jQuery(d).addClass('active');
+  });
+  var isPermentsZoom = false;
+
+  jQuery(document).on('keydown', function(event) {
+    if(event.keyCode == 17){
+      isreverseZoom = true;
+      getCanvasElement(canvas).addClass('out');
+    }
+  });
+
+  jQuery(document).on('keyup', function(event) {
+    if(event.keyCode == 17){
+      isreverseZoom = false;
+      getCanvasElement(canvas).removeClass('out');
+    }
+  });
+
+  canvas.on('mouse:down',function(event){
+    if(isPermentsZoom == true){
+      var p = canvas.getPointer(event.e);
+      if(isreverseZoom)
+        canvas.zoomToPoint(p,canvas.getZoom() - 0.1);
+      else  
+        canvas.zoomToPoint(p,canvas.getZoom() + 0.1);
+      canvas.renderAll();
+    }
+  });
+
+
   //Setting wall
-  var wallPoints = [{x:0,y:0},{x:200,y:0},{x:200,y:150},{x:400,y:150},{x:400,y:300},{x:0,y:300}];
+  var wallPoints = [{x:0,y:0},{x:5000 / srcMultiple,y:0},{x:5000 / srcMultiple,y:7000 / srcMultiple},{x:0,y:7000 / srcMultiple}];
   var polWall = new fabric.LiPolygon(wallPoints,{
     left: 0,
     top:0,
@@ -310,8 +422,10 @@ jQuery(document).ready(function($){
     lockMovementY: true,
     perPixelTargetFind: true, // I love this part
     padding: 4294967295 // get the fuck out, border
-  },[10,10,10,10,10,10]);
-
+  },[5,5,5,5]);
+  polWall.ProName = "Sàn";
+  polWall.floorPrice = 0;
+  //polWall.scale(1/srcMultiple);
  canvas.centerObject(polWall);
  canvas.add(polWall);
 
@@ -357,6 +471,8 @@ jQuery(document).ready(function($){
   var isChangeWall = -1;
   var isChangeCorner = -1;
   canvas.on("mouse:down",function(e) { //Start change Wall
+    if(isPermentsZoom == true)
+      return;
     jQuery(".wall-control").css("display","none");
     jQuery(".object-control").css("display","none");
     jQuery(".dimession").css("display","none");
@@ -385,6 +501,8 @@ jQuery(document).ready(function($){
   });
   var moX,moY; 
   canvas.on("mouse:move",function(e){ // Change wall line, point position
+    if(isHold || isPermentPans)
+      return;
     if(isChangeCorner != -1)
     {
       var i = isChangeCorner;
@@ -794,37 +912,53 @@ jQuery(document).ready(function($){
     //console.log(e.offsetX + "-" + e.offsetY);
     p = canvas.getPointer(e);
     var l = o.onLine,m;
+    var idx = canvas._objects.indexOf(o);
+
+    if(typeof o.onWall == 'undefined')
+      return;
     if(typeof o.onLine != 'undefined')
     {
       m = (l == polWall.points.length - 1) ? 0 : l + 1;
       if(typeof polWall.points[m].byPassLines != 'undefined')
-        polWall.points[m].byPassLines = [];
+      {
+        polWall.points[m].byPassLines[idx.toString()] = null;
+      }
     }
-    if(typeof o.onWall == 'undefined')
-      return;
+    var ang = o.getAngle();
     l = onLineWall(p,polWall,15);
     if(l == -1)
+    {
+      o.onLine = l;
       return;
+    }
+    if(typeof o.onLine  == 'undefined' || o.onLine == -1)
+    {
+      if(typeof o.isFlipped == 'undefined' || o.isFlipped == false)
+        o.isFlipped = true;
+      else if(o.isFlipped == true)
+        o.isFlipped = false;
+    }
     m = (l == polWall.points.length - 1) ? 0 : l + 1;
     var c = o.getCenterPoint(),
         p1 = polWall.points[l], p2 = polWall.points[m];
     c = polWall.toLocalPoint(c,'center','center');
     var dc = getDistance(c,p1,p2);
-    if(Math.abs(dc) < 30 && o.onStick || Math.abs(dc) > 50 && !o.onStick)
-    {
-      return;
-    }
+
     var s = c,a;
     if(o.onWall.axis = 'x')
     {
       a =Math.atan((p2.y - p1.y)/(p2.x - p1.x));
+      if(o.isFlipped)
+        a += Math.PI;
       s.x -= o.onWall.offset * Math.sin(a);
       s.y += o.onWall.offset * Math.cos(a);
-      a = fabric.util.radiansToDegrees(a);
+      a = fabric.util.radiansToDegrees(a) ;
     }
     else if(o.onWall.axis = 'y')
     {
       a = Math.atan((p2.y - p1.y)/(p2.x - p1.x));
+      if(o.isFlipped)
+        a += Math.PI;
       s.x += o.onWall.offset * Math.cos(a);
       s.y -= o.onWall.offset * Math.sin(a);
       a = fabric.util.radiansToDegrees(a);
@@ -842,22 +976,26 @@ jQuery(document).ready(function($){
     });
     var oX = canvas._currentTransform.offsetX,
         oY = canvas._currentTransform.offsetY,
-        signA = (a-oA)?(a-oA)<0?1:-1:-1;
+        signoA = (a-oA)?(a-oA)<0?1:-1:-1,
+        signA = (a) ? (a < 0) ? 1:-1:-1;
     o.onLine = l;
     var xx = polWall.toLocalPoint({x:o.left,y:o.top},"center","center");
-    o.loX = polWall.points[l].x - xx.x;
-    o.loY = polWall.points[l].y - xx.y;
     //Update mouse offset related to object
     canvas._currentTransform.offsetX = oX * Math.cos(fabric.util.degreesToRadians(Math.abs(a - oA))) +
-                                      oY * Math.sin(fabric.util.degreesToRadians(Math.abs(a - oA))) * signA;
+                                      oY * Math.sin(fabric.util.degreesToRadians(Math.abs(a - oA))) * signoA;
     canvas._currentTransform.offsetY = oY * Math.cos(fabric.util.degreesToRadians(Math.abs(a - oA))) -
-                                      oX * Math.sin(fabric.util.degreesToRadians(Math.abs(a - oA))) * signA;
-    var idx = canvas._objects.indexOf(o);
+                                      oX * Math.sin(fabric.util.degreesToRadians(Math.abs(a - oA))) * signoA;
     if(polWall.doors.indexOf(idx) == -1)
       polWall.doors.push(idx);
-    o.setCoords();
-    var ltl = polWall.toLocalPoint(o.oCoords.tl,"center","center"),
-        ltr = polWall.toLocalPoint(o.oCoords.tr,"center","center");
+    var otl = new fabric.Point(o.left,o.top),
+        otr = new fabric.Point(
+          o.left + o.getWidth() * Math.cos(fabric.util.degreesToRadians(Math.abs(a))) +
+                   o.getHeight() * Math.sin(fabric.util.degreesToRadians(Math.abs(a))) * signA,
+          o.top + o.getHeight() * Math.cos(fabric.util.degreesToRadians(Math.abs(a))) -
+                  o.getWidth() * Math.sin(fabric.util.degreesToRadians(Math.abs(a))) * signA
+        );
+    var ltl = polWall.toLocalPoint(otl,"center","center"),
+        ltr = polWall.toLocalPoint(otr,"center","center");
     var lerpTl = lerp(p1,p2,ltl),
         lerpTr = lerp(p1,p2,ltr);
     var lbsp = new fabric.Point(lerpTl.x,lerpTl.y),
@@ -865,39 +1003,34 @@ jQuery(document).ready(function($){
     var bypassLine = new fabric.Line();
     bypassLine.x1 = lbsp.x; bypassLine.y1 = lbsp.y;
     bypassLine.x2 = lbep.x; bypassLine.y2 = lbep.y;
-    polWall.points[m].byPassLines = [];
-    polWall.points[m].byPassLines.push(bypassLine);
+    if(typeof polWall.points[m].byPassLines == 'undefined')
+      polWall.points[m].byPassLines = new Object;
+    polWall.points[m].byPassLines[idx.toString()] = bypassLine;
   });
-  var lerp = function(pt1,pt2,pt)
-  {
-    var r = {};
-    var U = ((pt.y - pt1.y) * (pt2.y - pt1.y)) + ((pt.x - pt1.x) * (pt2.x - pt1.x));
-    var Udenom = Math.pow(pt2.y - pt1.y, 2) + Math.pow(pt2.x - pt1.x, 2);
-    U /= Udenom;
-    r.y = pt1.y + (U * (pt2.y - pt1.y));
-    r.x = pt1.x + (U * (pt2.x - pt1.x));
-    return r;
-  }
+
   canvas.on("mouse:move",function(e){
     if(isChangeWall == -1 && isChangeCorner == -1)
       return;
     for (var i = polWall.doors.length - 1; i >= 0; i--) {
-      var o = canvas._objects[polWall.doors[i]],
+      var idx = polWall.doors[i];
+      var o = canvas._objects[idx],
           l = o.onLine,
           m = (l == polWall.points.length - 1) ? 0 : l + 1,
           c = o.getCenterPoint(),
           p1 = polWall.points[l], p2 = polWall.points[m];
         c = polWall.toLocalPoint(c,'center','center');
-        var dc = getDistance(c,p1,p2);
-        if(Math.abs(dc) < 50 && o.onStick || Math.abs(dc) > 50 && !o.onStick)
-        {
-          polWall.doors.splice(i,1);
-          return;
-        }
+        updateDoor(e,o,p1,p2,l,m,c,idx);
+    };
+  });
+
+
+  var updateDoor = function(e,o,p1,p2,l,m,c,idx){
         var s = c,a;
         if(o.onWall.axis == 'x')
         {
-          a =Math.atan((p2.y - p1.y)/(p2.x - p1.x));
+          a = Math.atan((p2.y - p1.y)/(p2.x - p1.x));
+          if(o.isFlipped)
+           a += Math.PI;
           s.x -= o.onWall.offset * Math.sin(a);
           s.y += o.onWall.offset * Math.cos(a);
           a = fabric.util.radiansToDegrees(a);
@@ -905,13 +1038,14 @@ jQuery(document).ready(function($){
         else if(o.onWall.axis == 'y')
         {
           a = Math.atan((p2.y - p1.y)/(p2.x - p1.x));
+          if(o.isFlipped)
+             a += Math.PI;
           s.x += o.onWall.offset * Math.cos(a);
           s.y -= o.onWall.offset * Math.sin(a);
           a = fabric.util.radiansToDegrees(a);
           a = 90 - a;
         }
         var sP = lerp(p1,p2,s),
-            oA = o.getAngle(),
             cM = canvas.getPointer(e),
             iM = (isChangeWall == -1) ? isChangeCorner : isChangeWall,
             iN = (iM == 0) ? polWall.points.length - 1 : iM - 1,
@@ -935,9 +1069,16 @@ jQuery(document).ready(function($){
             originY: "top"
           });
         }
-         o.setCoords();
-        var ltl = polWall.toLocalPoint(o.oCoords.tl,"center","center"),
-            ltr = polWall.toLocalPoint(o.oCoords.tr,"center","center");
+        var signA = (a) ? (a < 0) ? 1:-1:-1;
+        var otl = new fabric.Point(o.left,o.top),
+        otr = new fabric.Point(
+          o.left + o.getWidth() * Math.cos(fabric.util.degreesToRadians(Math.abs(a))) +
+                   o.getHeight() * Math.sin(fabric.util.degreesToRadians(Math.abs(a))) * signA,
+          o.top + o.getHeight() * Math.cos(fabric.util.degreesToRadians(Math.abs(a))) -
+                  o.getWidth() * Math.sin(fabric.util.degreesToRadians(Math.abs(a))) * signA
+        );
+    var ltl = polWall.toLocalPoint(otl,"center","center"),
+        ltr = polWall.toLocalPoint(otr,"center","center");
         var lerpTl = lerp(p1,p2,ltl),
             lerpTr = lerp(p1,p2,ltr);
         var lbsp = new fabric.Point(lerpTl.x,lerpTl.y),
@@ -945,10 +1086,21 @@ jQuery(document).ready(function($){
         var bypassLine = new fabric.Line();
         bypassLine.x1 = lbsp.x; bypassLine.y1 = lbsp.y;
         bypassLine.x2 = lbep.x; bypassLine.y2 = lbep.y;
-        polWall.points[m].byPassLines = [];
-        polWall.points[m].byPassLines.push(bypassLine);
-    };
-  });
+        if(typeof polWall.points[m].byPassLines == 'undefined')
+          polWall.points[m].byPassLines = new Object;
+        polWall.points[m].byPassLines[idx.toString()] = bypassLine;
+  }
+
+  var lerp = function(pt1,pt2,pt)
+  {
+    var r = {};
+    var U = ((pt.y - pt1.y) * (pt2.y - pt1.y)) + ((pt.x - pt1.x) * (pt2.x - pt1.x));
+    var Udenom = Math.pow(pt2.y - pt1.y, 2) + Math.pow(pt2.x - pt1.x, 2);
+    U /= Udenom;
+    r.y = pt1.y + (U * (pt2.y - pt1.y));
+    r.x = pt1.x + (U * (pt2.x - pt1.x));
+    return r;
+  }
 
   canvas.on("mouse:up",function(e){
     var o;
@@ -958,31 +1110,35 @@ jQuery(document).ready(function($){
     }; 
     canvas.renderAll();
   });
+  ////////////////////////////////////////////////////////////////////////////
+  /////////////             End door and window section          /////////////
+  ////////////////////////////////////////////////////////////////////////////
 
+  ////////////////////////////////////////////////////////////////////////////
+  /////////////////            Begin floor section          //////////////////
+  ////////////////////////////////////////////////////////////////////////////
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+  $("body").on("click",'.pattern-filter span',function(e){
+      var img = $(this).find("img");
+      var price = $(img).data('price'),
+          area = (polWall.calcArea() * Math.pow(srcMultiple,2) / 1000000).toFixed(2);
+      if($(img).data('pattern')){
+      var src = $(img).data('pattern');
+        fabric.Image.fromURL(src,function(img){
+          img.scaleToWidth(64);
+          polWall.fillPattern(img);
+          canvas.renderAll();
+        });
+      }
+      else if($(img).data('color'))
+      {
+        var color = $(img).data('color');
+        polWall.setFill(color);
+        canvas.renderAll();
+      }
+      polWall.floorPrice = price;
+      jQuery(".object-control").find(".product-price .value").text(currencyFormat(area * polWall.floorPrice));
+  });
 
 });
 
@@ -998,6 +1154,10 @@ fabric.Path.makeClone = function(o,cOffset,ca){ // Custom clone object function
         c.hexCode = o.hexCode;
         c.pathToFill = o.pathToFill; //set pathToFill property
         c.srcSVG = o.srcSVG;
+        c.ProName = o.ProName;
+        c.zData = o.zData;
+        c.realImage = o.realImage;
+        c.price = o.price;
         c.isLock = o.isLock;
         c.scale(o.scaleX);
         c.set({
@@ -1074,7 +1234,7 @@ var updateControl = function(o) { //Update corner control
       "top":  o.oCoords.tr.y - 8 + container.offset().top + "px"
   });
   var dOffsetY = (o.oCoords.mt.y > o.getCenterPoint().y) ? 0 : -20,
-      dOffsetX = (o.oCoords.mt.x >= o.getCenterPoint().x) ? -26 : - 30;
+      dOffsetX = (o.oCoords.mt.x >= o.getCenterPoint().x) ? -16 : - 30;
   dimession_width.css({
       "display": 'block',
       "left": o.oCoords.mt.x + dOffsetX + container.offset().left + "px",
@@ -1082,8 +1242,8 @@ var updateControl = function(o) { //Update corner control
       "transform" : "rotate("+o.getAngle()+"deg)",
       "font-size" : 12 * o.canvas.getZoom() + "px"
   });
-  var hOffsetY = (o.oCoords.mr.y > o.getCenterPoint().y) ? -5 : - 20,
-      hOffsetX = (o.oCoords.mr.x >= o.getCenterPoint().x) ? -15 : - 34;
+  var hOffsetY = (o.oCoords.mr.y > o.getCenterPoint().y) ? -5 : -20,
+      hOffsetX = (o.oCoords.mr.x >= o.getCenterPoint().x) ? -15 : -34;
   dimession_height.css({
       "display": 'block',
       "left": o.oCoords.mr.x + hOffsetX + container.offset().left + "px",
@@ -1105,4 +1265,8 @@ var minValue = function(array,property) {
     min = Math.min(array[i][property],min);
   };
   return min;
+}
+
+var currencyFormat = function(n){
+  return n.toFixed(2).replace(/(\d)(?=(\d{3})+\.)/g, "$1,");
 }

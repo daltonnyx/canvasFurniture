@@ -1,4 +1,4 @@
-<?xml version="1.0"?><svg width="640" height="480" xmlns="http://www.w3.org/2000/svg">
+<?xml version="1.0"?><svg width="640" height="480" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
  <g>
   <title>Layer 1</title>
   <path fill="#ffffff" fill-rule="evenodd" stroke-width="7.5" stroke="#000000" id="path575" d="m56.974792,33.993679c-22.159973,0 -40,17.84 -40,40.000004l0,239.583862c0,22.160004 17.840027,40 40,40l33.835815,3l204.87915,103.648834c-32.318542,-37.549622 -83.636963,-76.099213 -113.955505,-111.648834l382.583862,5c22.160034,0 40,-17.839996 40,-40l0,-239.583862c0,-22.160004 -17.839966,-40.000004 -40,-40.000004l-507.343323,0z"/>

@@ -19,6 +19,8 @@
 	</script>
 	<script src="js/components/notify.min.js" type="text/javascript">
 	</script>
+  <script src="js/main.js" type="text/javascript">
+  </script>
 	<link type="text/css" rel="stylesheet" href="css/uikit.min.css" />
 	<link type="text/css" rel="stylesheet" href="css/components/notify.min.css" />
 	<link type="text/css" rel="stylesheet" href="css/theme.css" />
@@ -27,66 +29,656 @@
 </head>
 <body>
 <header class="uk-width-1-1 header">
-  <h1 class="uk-text-left page-title">Canvas test</h1>
+<div class="uk-container uk-container-center">
+	  <div class="uk-width-1-1">
+	  </div>
+	  <div class="uk-width-1-3">
+	  	<a href="#"><img src="img/logo.png" /></a>
+	  </div>
+	  <div class="uk-width-1-4"></div>
+</div>
 </header>
-<section class="uk-grid main-page">
-  <div id="sidebar" class="uk-width-1-4">
-    <div class="svg-container">
-    <h2>Không thể thay đổi kích thước</h2>
-      <img src="sink.jpg" data-svg="sink.svg" width="100px;" data-can-scale="off" class="svg-item" draggable="true" />
-      <img src="desk.jpg" data-svg="table_2.svg" width="100px;" data-can-scale="off" class="svg-item" draggable="true" />
-      <img src="table.jpg" data-svg="table.svg" width="100px;" data-can-scale="off" class="svg-item" draggable="true" />
-      <img src="Glen-Gas-Stove.jpeg" data-svg="bepga.svg" data-can-scale="off" width="100px;" class="svg-item" draggable="true" />
-	  <img src="sofa.jpeg" data-svg="Sofa-Model.svg" data-can-scale="off" class="svg-item" width="100px;" draggable="true" />
-	  <h2>Cửa</h2>
-	  <img src="door1.svg" data-svg="door1.svg" data-can-scale="on" data-on-wall="{'axis':'x','offset':0}" class="svg-item" width="100px;" draggable="true" />
-	  <img src="door2.svg" data-svg="door2.svg" data-can-scale="on" data-on-wall="{'axis':'x','offset':35}" class="svg-item" width="100px;" draggable="true" />
-	  <img src="door3.svg" data-svg="door3.svg" data-can-scale="on" data-on-wall="{'axis':'x','offset':18}" class="svg-item" width="100px;" draggable="true" />
-	  <img src="door4.svg" data-svg="door4.svg" data-can-scale="on" data-on-wall="{'axis':'x','offset':20}" class="svg-item" width="100px;" draggable="true" />
-	  <!-- <h2>có thể thay đổi kích thước</h2>
-	  <img src="sink.svg" data-svg="sink.svg" width="50px;" class="svg-item" draggable="true" />
-      <img src="table_2.svg" data-svg="table_2.svg" width="50px;" class="svg-item" draggable="true" />
-      <img src="table.svg" data-svg="table.svg" width="50px;"  class="svg-item" draggable="true" />
-      <img src="bepga.svg" data-svg="bepga.svg" width="50px;" class="svg-item" draggable="true" />
-	  <img src="Sofa-Model.svg" data-svg="Sofa-Model.svg" class="svg-item" width="100px;" draggable="true" /> -->
+<nav class="main-navigation uk-navbar" role="navigation">
+	<ul id="main-menu" class="main-nav">
+		<li class="nav-item first-item"><a class="item-link" href="#">Sản phẩm</a></li>
+		<li class="nav-item"><a class="item-link" href="#">Bộ sưu tập</a></li>
+		<li class="nav-item current-item"><a class="item-link" href="#">Tự thiết kế</a></li>
+		<li class="nav-item"><a class="item-link" href="#">Cần thiết kế</a></li>
+		<li class="nav-item"><a class="item-link" href="#">Kiến trúc nội thất</a></li>
+		<li class="nav-item"><a class="item-link" href="#">Hướng dẫn</a></li>
+		<li class="nav-item"><a class="item-link" href="#">Hỏi đáp</a></li>
+		<li class="nav-item"><a class="item-link" href="#">Liên hệ</a></li>
+	</ul>
+</nav>
+
+<main class="uk-grid main-page uk-container uk-container-center">
+  <div id="sidebar" class="uk-width-2-5">
+  	<div class="logo uk-width-1-1">
+  		<img src="img/icon.png" class="uk-width-1-5" />
+  		<span class="uk-width-4-5 slogan"><span class="aqua">Tự</span> thiết kế</span>
+  	</div>
+  	<div id="sidebar-container">
+  	<ul class="uk-tab" data-uk-tab="{connect:'#furnitures'}">
+    	<li><a href="">Sản phẩm</a></li>
+    	<li><a href="">Ký hiệu</a></li>
+    	<li><a href="">Tìm kiếm</a></li>
+    	<li><a href="">Wishlist</a></li>
+	</ul>
+    <ul class="uk-switcher svg-container" id="furnitures">
+      	<li class="tab-list product-fur">
+      		<div class="product-list">
+      			<div class="product-select">
+      				<select id="productSelect">
+      					<option value="furniture">Nội thất</option>
+      					<option value="door">Cửa</option>
+      					<option value="floor">Sàn</option>
+      					<option value="other">...</option>
+      				</select>
+      				<select id="roomSelect">
+      					<option value="living">Phòng khách</option>
+      					<option value="bed">Phòng ngủ</option>
+      					<option value="kitchen">Phòng bếp</option>
+      					<option value="bath">Phòng tắm</option>
+      					<option value="bar">Bar</option>
+      				</select>
+      			</div>
+      			<div class="funiture-list">
+      				<div class="product">
+      					<div class="product-image">
+      						<a href="#" class="product-link svg-item" data-svg="table.svg" data-can-scale="off">
+      							<img src="table.jpg" data-image="table.jpg" class="svg-item" data-name="Bàn" data-svg="table.svg" data-can-scale="off" data-zData="500" data-price="500000" />
+      						</a>
+      					</div>
+      					<div class="product-title">
+      						<a href="#" class="product-link svg-item" data-image="table.jpg" data-svg="table.svg" data-can-scale="off">
+      						<h5>Bàn</h5>
+      						</a>
+      					</div>
+      				</div>
+      				<div class="product">
+      					<div class="product-image">
+      						<a href="#" class="product-link svg-item" data-svg="table2.svg" data-can-scale="off">
+      							<img src="desk.jpg" class="svg-item" data-image="desk.jpg" data-name="Bàn 2" data-svg="table2.svg" data-can-scale="off" data-zData="1000" data-price="3000000" />
+      						</a>
+      					</div>
+      					<div class="product-title">
+      						<a href="#" class="product-link svg-item" data-svg="" data-can-scale="">
+      						<h5>Bàn 2</h5>
+      						</a>
+      					</div>
+      				</div>
+      				<div class="product">
+      					<div class="product-image">
+      						<a href="#" class="product-link svg-item" data-svg="" data-can-scale="off">
+      							<img src="sink.jpg" class="svg-item" data-image="sink.jpg" data-name="Bồn rửa mặt" data-svg="sink.svg" data-can-scale="off" data-zData="1500" data-price="1350000" />
+      						</a>
+      					</div>
+      					<div class="product-title">
+      						<a href="#" class="product-link svg-item" data-svg="" data-can-scale="">
+      						<h5>Bồn rửa mặt</h5>
+      						</a>
+      					</div>
+      				</div>
+      				<div class="product">
+      					<div class="product-image">
+      						<a href="#" class="product-link svg-item" data-svg="bepga.svg" data-can-scale="off">
+      							<img src="Glen-Gas-Stove.jpeg" data-name="Bếp ga"  data-image="Glen-Gas-Stove.jpeg"class="svg-item" data-svg="bepga.svg" data-can-scale="off" data-zData="700000" data-price="500000" />
+      						</a>
+      					</div>
+      					<div class="product-title">
+      						<a href="#" class="product-link svg-item" data-svg="" data-can-scale="">
+      						<h5>Bếp ga</h5>
+      						</a>
+      					</div>
+      				</div>
+              <div class="product">
+                <div class="product-image">
+                  <a href="#" class="product-link svg-item" data-svg="table.svg" data-can-scale="off">
+                    <img src="table.jpg" data-image="table.jpg" class="svg-item" data-name="Bàn" data-svg="table.svg" data-can-scale="off" data-zData="500" data-price="500000" />
+                  </a>
+                </div>
+                <div class="product-title">
+                  <a href="#" class="product-link svg-item" data-image="table.jpg" data-svg="table.svg" data-can-scale="off">
+                  <h5>Bàn</h5>
+                  </a>
+                </div>
+              </div>
+              <div class="product">
+                <div class="product-image">
+                  <a href="#" class="product-link svg-item" data-svg="table2.svg" data-can-scale="off">
+                    <img src="desk.jpg" class="svg-item" data-image="desk.jpg" data-name="Bàn 2" data-svg="table2.svg" data-can-scale="off" data-zData="1000" data-price="3000000" />
+                  </a>
+                </div>
+                <div class="product-title">
+                  <a href="#" class="product-link svg-item" data-svg="" data-can-scale="">
+                  <h5>Bàn 2</h5>
+                  </a>
+                </div>
+              </div>
+              <div class="product">
+                <div class="product-image">
+                  <a href="#" class="product-link svg-item" data-svg="" data-can-scale="off">
+                    <img src="sink.jpg" class="svg-item" data-image="sink.jpg" data-name="Bồn rửa mặt" data-svg="sink.svg" data-can-scale="off" data-zData="1500" data-price="1350000" />
+                  </a>
+                </div>
+                <div class="product-title">
+                  <a href="#" class="product-link svg-item" data-svg="" data-can-scale="">
+                  <h5>Bồn rửa mặt</h5>
+                  </a>
+                </div>
+              </div>
+              <div class="product">
+                <div class="product-image">
+                  <a href="#" class="product-link svg-item" data-svg="bepga.svg" data-can-scale="off">
+                    <img src="Glen-Gas-Stove.jpeg" data-name="Bếp ga"  data-image="Glen-Gas-Stove.jpeg"class="svg-item" data-svg="bepga.svg" data-can-scale="off" data-zData="700000" data-price="500000" />
+                  </a>
+                </div>
+                <div class="product-title">
+                  <a href="#" class="product-link svg-item" data-svg="" data-can-scale="">
+                  <h5>Bếp ga</h5>
+                  </a>
+                </div>
+              </div>
+              <div class="product">
+                <div class="product-image">
+                  <a href="#" class="product-link svg-item" data-svg="table.svg" data-can-scale="off">
+                    <img src="table.jpg" data-image="table.jpg" class="svg-item" data-name="Bàn" data-svg="table.svg" data-can-scale="off" data-zData="500" data-price="500000" />
+                  </a>
+                </div>
+                <div class="product-title">
+                  <a href="#" class="product-link svg-item" data-image="table.jpg" data-svg="table.svg" data-can-scale="off">
+                  <h5>Bàn</h5>
+                  </a>
+                </div>
+              </div>
+              <div class="product">
+                <div class="product-image">
+                  <a href="#" class="product-link svg-item" data-svg="table2.svg" data-can-scale="off">
+                    <img src="desk.jpg" class="svg-item" data-image="desk.jpg" data-name="Bàn 2" data-svg="table2.svg" data-can-scale="off" data-zData="1000" data-price="3000000" />
+                  </a>
+                </div>
+                <div class="product-title">
+                  <a href="#" class="product-link svg-item" data-svg="" data-can-scale="">
+                  <h5>Bàn 2</h5>
+                  </a>
+                </div>
+              </div>
+              <div class="product">
+                <div class="product-image">
+                  <a href="#" class="product-link svg-item" data-svg="" data-can-scale="off">
+                    <img src="sink.jpg" class="svg-item" data-image="sink.jpg" data-name="Bồn rửa mặt" data-svg="sink.svg" data-can-scale="off" data-zData="1500" data-price="1350000" />
+                  </a>
+                </div>
+                <div class="product-title">
+                  <a href="#" class="product-link svg-item" data-svg="" data-can-scale="">
+                  <h5>Bồn rửa mặt</h5>
+                  </a>
+                </div>
+              </div>
+              <div class="product">
+                <div class="product-image">
+                  <a href="#" class="product-link svg-item" data-svg="bepga.svg" data-can-scale="off">
+                    <img src="Glen-Gas-Stove.jpeg" data-name="Bếp ga"  data-image="Glen-Gas-Stove.jpeg"class="svg-item" data-svg="bepga.svg" data-can-scale="off" data-zData="700000" data-price="500000" />
+                  </a>
+                </div>
+                <div class="product-title">
+                  <a href="#" class="product-link svg-item" data-svg="" data-can-scale="">
+                  <h5>Bếp ga</h5>
+                  </a>
+                </div>
+              </div>
+              <div class="product">
+                <div class="product-image">
+                  <a href="#" class="product-link svg-item" data-svg="table.svg" data-can-scale="off">
+                    <img src="table.jpg" data-image="table.jpg" class="svg-item" data-name="Bàn" data-svg="table.svg" data-can-scale="off" data-zData="500" data-price="500000" />
+                  </a>
+                </div>
+                <div class="product-title">
+                  <a href="#" class="product-link svg-item" data-image="table.jpg" data-svg="table.svg" data-can-scale="off">
+                  <h5>Bàn</h5>
+                  </a>
+                </div>
+              </div>
+              <div class="product">
+                <div class="product-image">
+                  <a href="#" class="product-link svg-item" data-svg="table2.svg" data-can-scale="off">
+                    <img src="desk.jpg" class="svg-item" data-image="desk.jpg" data-name="Bàn 2" data-svg="table2.svg" data-can-scale="off" data-zData="1000" data-price="3000000" />
+                  </a>
+                </div>
+                <div class="product-title">
+                  <a href="#" class="product-link svg-item" data-svg="" data-can-scale="">
+                  <h5>Bàn 2</h5>
+                  </a>
+                </div>
+              </div>
+              <div class="product">
+                <div class="product-image">
+                  <a href="#" class="product-link svg-item" data-svg="" data-can-scale="off">
+                    <img src="sink.jpg" class="svg-item" data-image="sink.jpg" data-name="Bồn rửa mặt" data-svg="sink.svg" data-can-scale="off" data-zData="1500" data-price="1350000" />
+                  </a>
+                </div>
+                <div class="product-title">
+                  <a href="#" class="product-link svg-item" data-svg="" data-can-scale="">
+                  <h5>Bồn rửa mặt</h5>
+                  </a>
+                </div>
+              </div>
+              <div class="product">
+                <div class="product-image">
+                  <a href="#" class="product-link svg-item" data-svg="bepga.svg" data-can-scale="off">
+                    <img src="Glen-Gas-Stove.jpeg" data-name="Bếp ga"  data-image="Glen-Gas-Stove.jpeg"class="svg-item" data-svg="bepga.svg" data-can-scale="off" data-zData="700000" data-price="500000" />
+                  </a>
+                </div>
+                <div class="product-title">
+                  <a href="#" class="product-link svg-item" data-svg="" data-can-scale="">
+                  <h5>Bếp ga</h5>
+                  </a>
+                </div>
+              </div>
+              <div class="product">
+                <div class="product-image">
+                  <a href="#" class="product-link svg-item" data-svg="table.svg" data-can-scale="off">
+                    <img src="table.jpg" data-image="table.jpg" class="svg-item" data-name="Bàn" data-svg="table.svg" data-can-scale="off" data-zData="500" data-price="500000" />
+                  </a>
+                </div>
+                <div class="product-title">
+                  <a href="#" class="product-link svg-item" data-image="table.jpg" data-svg="table.svg" data-can-scale="off">
+                  <h5>Bàn</h5>
+                  </a>
+                </div>
+              </div>
+              <div class="product">
+                <div class="product-image">
+                  <a href="#" class="product-link svg-item" data-svg="table2.svg" data-can-scale="off">
+                    <img src="desk.jpg" class="svg-item" data-image="desk.jpg" data-name="Bàn 2" data-svg="table2.svg" data-can-scale="off" data-zData="1000" data-price="3000000" />
+                  </a>
+                </div>
+                <div class="product-title">
+                  <a href="#" class="product-link svg-item" data-svg="" data-can-scale="">
+                  <h5>Bàn 2</h5>
+                  </a>
+                </div>
+              </div>
+              <div class="product">
+                <div class="product-image">
+                  <a href="#" class="product-link svg-item" data-svg="" data-can-scale="off">
+                    <img src="sink.jpg" class="svg-item" data-image="sink.jpg" data-name="Bồn rửa mặt" data-svg="sink.svg" data-can-scale="off" data-zData="1500" data-price="1350000" />
+                  </a>
+                </div>
+                <div class="product-title">
+                  <a href="#" class="product-link svg-item" data-svg="" data-can-scale="">
+                  <h5>Bồn rửa mặt</h5>
+                  </a>
+                </div>
+              </div>
+              <div class="product">
+                <div class="product-image">
+                  <a href="#" class="product-link svg-item" data-svg="bepga.svg" data-can-scale="off">
+                    <img src="Glen-Gas-Stove.jpeg" data-name="Bếp ga"  data-image="Glen-Gas-Stove.jpeg"class="svg-item" data-svg="bepga.svg" data-can-scale="off" data-zData="700000" data-price="500000" />
+                  </a>
+                </div>
+                <div class="product-title">
+                  <a href="#" class="product-link svg-item" data-svg="" data-can-scale="">
+                  <h5>Bếp ga</h5>
+                  </a>
+                </div>
+              </div>
+              <div class="product">
+                <div class="product-image">
+                  <a href="#" class="product-link svg-item" data-svg="table.svg" data-can-scale="off">
+                    <img src="table.jpg" data-image="table.jpg" class="svg-item" data-name="Bàn" data-svg="table.svg" data-can-scale="off" data-zData="500" data-price="500000" />
+                  </a>
+                </div>
+                <div class="product-title">
+                  <a href="#" class="product-link svg-item" data-image="table.jpg" data-svg="table.svg" data-can-scale="off">
+                  <h5>Bàn</h5>
+                  </a>
+                </div>
+              </div>
+              <div class="product">
+                <div class="product-image">
+                  <a href="#" class="product-link svg-item" data-svg="table2.svg" data-can-scale="off">
+                    <img src="desk.jpg" class="svg-item" data-image="desk.jpg" data-name="Bàn 2" data-svg="table2.svg" data-can-scale="off" data-zData="1000" data-price="3000000" />
+                  </a>
+                </div>
+                <div class="product-title">
+                  <a href="#" class="product-link svg-item" data-svg="" data-can-scale="">
+                  <h5>Bàn 2</h5>
+                  </a>
+                </div>
+              </div>
+              <div class="product">
+                <div class="product-image">
+                  <a href="#" class="product-link svg-item" data-svg="" data-can-scale="off">
+                    <img src="sink.jpg" class="svg-item" data-image="sink.jpg" data-name="Bồn rửa mặt" data-svg="sink.svg" data-can-scale="off" data-zData="1500" data-price="1350000" />
+                  </a>
+                </div>
+                <div class="product-title">
+                  <a href="#" class="product-link svg-item" data-svg="" data-can-scale="">
+                  <h5>Bồn rửa mặt</h5>
+                  </a>
+                </div>
+              </div>
+              <div class="product">
+                <div class="product-image">
+                  <a href="#" class="product-link svg-item" data-svg="bepga.svg" data-can-scale="off">
+                    <img src="Glen-Gas-Stove.jpeg" data-name="Bếp ga"  data-image="Glen-Gas-Stove.jpeg"class="svg-item" data-svg="bepga.svg" data-can-scale="off" data-zData="700000" data-price="500000" />
+                  </a>
+                </div>
+                <div class="product-title">
+                  <a href="#" class="product-link svg-item" data-svg="" data-can-scale="">
+                  <h5>Bếp ga</h5>
+                  </a>
+                </div>
+              </div>
+              <div class="product">
+                <div class="product-image">
+                  <a href="#" class="product-link svg-item" data-svg="table.svg" data-can-scale="off">
+                    <img src="table.jpg" data-image="table.jpg" class="svg-item" data-name="Bàn" data-svg="table.svg" data-can-scale="off" data-zData="500" data-price="500000" />
+                  </a>
+                </div>
+                <div class="product-title">
+                  <a href="#" class="product-link svg-item" data-image="table.jpg" data-svg="table.svg" data-can-scale="off">
+                  <h5>Bàn</h5>
+                  </a>
+                </div>
+              </div>
+              <div class="product">
+                <div class="product-image">
+                  <a href="#" class="product-link svg-item" data-svg="table2.svg" data-can-scale="off">
+                    <img src="desk.jpg" class="svg-item" data-image="desk.jpg" data-name="Bàn 2" data-svg="table2.svg" data-can-scale="off" data-zData="1000" data-price="3000000" />
+                  </a>
+                </div>
+                <div class="product-title">
+                  <a href="#" class="product-link svg-item" data-svg="" data-can-scale="">
+                  <h5>Bàn 2</h5>
+                  </a>
+                </div>
+              </div>
+              <div class="product">
+                <div class="product-image">
+                  <a href="#" class="product-link svg-item" data-svg="" data-can-scale="off">
+                    <img src="sink.jpg" class="svg-item" data-image="sink.jpg" data-name="Bồn rửa mặt" data-svg="sink.svg" data-can-scale="off" data-zData="1500" data-price="1350000" />
+                  </a>
+                </div>
+                <div class="product-title">
+                  <a href="#" class="product-link svg-item" data-svg="" data-can-scale="">
+                  <h5>Bồn rửa mặt</h5>
+                  </a>
+                </div>
+              </div>
+              <div class="product">
+                <div class="product-image">
+                  <a href="#" class="product-link svg-item" data-svg="bepga.svg" data-can-scale="off">
+                    <img src="Glen-Gas-Stove.jpeg" data-name="Bếp ga"  data-image="Glen-Gas-Stove.jpeg"class="svg-item" data-svg="bepga.svg" data-can-scale="off" data-zData="700000" data-price="500000" />
+                  </a>
+                </div>
+                <div class="product-title">
+                  <a href="#" class="product-link svg-item" data-svg="" data-can-scale="">
+                  <h5>Bếp ga</h5>
+                  </a>
+                </div>
+              </div>
+              <div class="product">
+                <div class="product-image">
+                  <a href="#" class="product-link svg-item" data-svg="table.svg" data-can-scale="off">
+                    <img src="table.jpg" data-image="table.jpg" class="svg-item" data-name="Bàn" data-svg="table.svg" data-can-scale="off" data-zData="500" data-price="500000" />
+                  </a>
+                </div>
+                <div class="product-title">
+                  <a href="#" class="product-link svg-item" data-image="table.jpg" data-svg="table.svg" data-can-scale="off">
+                  <h5>Bàn</h5>
+                  </a>
+                </div>
+              </div>
+              <div class="product">
+                <div class="product-image">
+                  <a href="#" class="product-link svg-item" data-svg="table2.svg" data-can-scale="off">
+                    <img src="desk.jpg" class="svg-item" data-image="desk.jpg" data-name="Bàn 2" data-svg="table2.svg" data-can-scale="off" data-zData="1000" data-price="3000000" />
+                  </a>
+                </div>
+                <div class="product-title">
+                  <a href="#" class="product-link svg-item" data-svg="" data-can-scale="">
+                  <h5>Bàn 2</h5>
+                  </a>
+                </div>
+              </div>
+              <div class="product">
+                <div class="product-image">
+                  <a href="#" class="product-link svg-item" data-svg="" data-can-scale="off">
+                    <img src="sink.jpg" class="svg-item" data-image="sink.jpg" data-name="Bồn rửa mặt" data-svg="sink.svg" data-can-scale="off" data-zData="1500" data-price="1350000" />
+                  </a>
+                </div>
+                <div class="product-title">
+                  <a href="#" class="product-link svg-item" data-svg="" data-can-scale="">
+                  <h5>Bồn rửa mặt</h5>
+                  </a>
+                </div>
+              </div>
+              <div class="product">
+                <div class="product-image">
+                  <a href="#" class="product-link svg-item" data-svg="bepga.svg" data-can-scale="off">
+                    <img src="Glen-Gas-Stove.jpeg" data-name="Bếp ga"  data-image="Glen-Gas-Stove.jpeg"class="svg-item" data-svg="bepga.svg" data-can-scale="off" data-zData="700000" data-price="500000" />
+                  </a>
+                </div>
+                <div class="product-title">
+                  <a href="#" class="product-link svg-item" data-svg="" data-can-scale="">
+                  <h5>Bếp ga</h5>
+                  </a>
+                </div>
+              </div>
+              <div class="product">
+                <div class="product-image">
+                  <a href="#" class="product-link svg-item" data-svg="table.svg" data-can-scale="off">
+                    <img src="table.jpg" data-image="table.jpg" class="svg-item" data-name="Bàn" data-svg="table.svg" data-can-scale="off" data-zData="500" data-price="500000" />
+                  </a>
+                </div>
+                <div class="product-title">
+                  <a href="#" class="product-link svg-item" data-image="table.jpg" data-svg="table.svg" data-can-scale="off">
+                  <h5>Bàn</h5>
+                  </a>
+                </div>
+              </div>
+              <div class="product">
+                <div class="product-image">
+                  <a href="#" class="product-link svg-item" data-svg="table2.svg" data-can-scale="off">
+                    <img src="desk.jpg" class="svg-item" data-image="desk.jpg" data-name="Bàn 2" data-svg="table2.svg" data-can-scale="off" data-zData="1000" data-price="3000000" />
+                  </a>
+                </div>
+                <div class="product-title">
+                  <a href="#" class="product-link svg-item" data-svg="" data-can-scale="">
+                  <h5>Bàn 2</h5>
+                  </a>
+                </div>
+              </div>
+              <div class="product">
+                <div class="product-image">
+                  <a href="#" class="product-link svg-item" data-svg="" data-can-scale="off">
+                    <img src="sink.jpg" class="svg-item" data-image="sink.jpg" data-name="Bồn rửa mặt" data-svg="sink.svg" data-can-scale="off" data-zData="1500" data-price="1350000" />
+                  </a>
+                </div>
+                <div class="product-title">
+                  <a href="#" class="product-link svg-item" data-svg="" data-can-scale="">
+                  <h5>Bồn rửa mặt</h5>
+                  </a>
+                </div>
+              </div>
+              <div class="product">
+                <div class="product-image">
+                  <a href="#" class="product-link svg-item" data-svg="bepga.svg" data-can-scale="off">
+                    <img src="Glen-Gas-Stove.jpeg" data-name="Bếp ga"  data-image="Glen-Gas-Stove.jpeg"class="svg-item" data-svg="bepga.svg" data-can-scale="off" data-zData="700000" data-price="500000" />
+                  </a>
+                </div>
+                <div class="product-title">
+                  <a href="#" class="product-link svg-item" data-svg="" data-can-scale="">
+                  <h5>Bếp ga</h5>
+                  </a>
+                </div>
+              </div>
+              <div class="product">
+                <div class="product-image">
+                  <a href="#" class="product-link svg-item" data-svg="table.svg" data-can-scale="off">
+                    <img src="table.jpg" data-image="table.jpg" class="svg-item" data-name="Bàn" data-svg="table.svg" data-can-scale="off" data-zData="500" data-price="500000" />
+                  </a>
+                </div>
+                <div class="product-title">
+                  <a href="#" class="product-link svg-item" data-image="table.jpg" data-svg="table.svg" data-can-scale="off">
+                  <h5>Bàn</h5>
+                  </a>
+                </div>
+              </div>
+              <div class="product">
+                <div class="product-image">
+                  <a href="#" class="product-link svg-item" data-svg="table2.svg" data-can-scale="off">
+                    <img src="desk.jpg" class="svg-item" data-image="desk.jpg" data-name="Bàn 2" data-svg="table2.svg" data-can-scale="off" data-zData="1000" data-price="3000000" />
+                  </a>
+                </div>
+                <div class="product-title">
+                  <a href="#" class="product-link svg-item" data-svg="" data-can-scale="">
+                  <h5>Bàn 2</h5>
+                  </a>
+                </div>
+              </div>
+              <div class="product">
+                <div class="product-image">
+                  <a href="#" class="product-link svg-item" data-svg="" data-can-scale="off">
+                    <img src="sink.jpg" class="svg-item" data-image="sink.jpg" data-name="Bồn rửa mặt" data-svg="sink.svg" data-can-scale="off" data-zData="1500" data-price="1350000" />
+                  </a>
+                </div>
+                <div class="product-title">
+                  <a href="#" class="product-link svg-item" data-svg="" data-can-scale="">
+                  <h5>Bồn rửa mặt</h5>
+                  </a>
+                </div>
+              </div>
+              <div class="product">
+                <div class="product-image">
+                  <a href="#" class="product-link svg-item" data-svg="bepga.svg" data-can-scale="off">
+                    <img src="Glen-Gas-Stove.jpeg" data-name="Bếp ga"  data-image="Glen-Gas-Stove.jpeg"class="svg-item" data-svg="bepga.svg" data-can-scale="off" data-zData="700000" data-price="500000" />
+                  </a>
+                </div>
+                <div class="product-title">
+                  <a href="#" class="product-link svg-item" data-svg="" data-can-scale="">
+                  <h5>Bếp ga</h5>
+                  </a>
+                </div>
+              </div>
+              <div class="product">
+                <div class="product-image">
+                  <a href="#" class="product-link svg-item" data-svg="table.svg" data-can-scale="off">
+                    <img src="table.jpg" data-image="table.jpg" class="svg-item" data-name="Bàn" data-svg="table.svg" data-can-scale="off" data-zData="500" data-price="500000" />
+                  </a>
+                </div>
+                <div class="product-title">
+                  <a href="#" class="product-link svg-item" data-image="table.jpg" data-svg="table.svg" data-can-scale="off">
+                  <h5>Bàn</h5>
+                  </a>
+                </div>
+              </div>
+              <div class="product">
+                <div class="product-image">
+                  <a href="#" class="product-link svg-item" data-svg="table2.svg" data-can-scale="off">
+                    <img src="desk.jpg" class="svg-item" data-image="desk.jpg" data-name="Bàn 2" data-svg="table2.svg" data-can-scale="off" data-zData="1000" data-price="3000000" />
+                  </a>
+                </div>
+                <div class="product-title">
+                  <a href="#" class="product-link svg-item" data-svg="" data-can-scale="">
+                  <h5>Bàn 2</h5>
+                  </a>
+                </div>
+              </div>
+              <div class="product">
+                <div class="product-image">
+                  <a href="#" class="product-link svg-item" data-svg="" data-can-scale="off">
+                    <img src="sink.jpg" class="svg-item" data-image="sink.jpg" data-name="Bồn rửa mặt" data-svg="sink.svg" data-can-scale="off" data-zData="1500" data-price="1350000" />
+                  </a>
+                </div>
+                <div class="product-title">
+                  <a href="#" class="product-link svg-item" data-svg="" data-can-scale="">
+                  <h5>Bồn rửa mặt</h5>
+                  </a>
+                </div>
+              </div>
+              <div class="product">
+                <div class="product-image">
+                  <a href="#" class="product-link svg-item" data-svg="bepga.svg" data-can-scale="off">
+                    <img src="Glen-Gas-Stove.jpeg" data-name="Bếp ga"  data-image="Glen-Gas-Stove.jpeg"class="svg-item" data-svg="bepga.svg" data-can-scale="off" data-zData="700000" data-price="500000" />
+                  </a>
+                </div>
+                <div class="product-title">
+                  <a href="#" class="product-link svg-item" data-svg="" data-can-scale="">
+                  <h5>Bếp ga</h5>
+                  </a>
+                </div>
+              </div>
+              
+      		</div>
+      	</li>
+    	<li class="tab-list sign-fur">
+    		
+    	</li>
+    	<li class="tab-list search">
+    		
+    	</li>
+    	<li class="tab-list wishlist">
+    		
+    	</li>
+    </ul>
     </div>
-    <div class="control-container">
+  </div>
+  <div class="uk-width-3-5 main-canvas">
+  <div class="seperator-big"></div>
+  	<div class="control-container main-menu">
+  	<button class="uk-button" id="new">new</button>
+  	<button class="uk-button" id="saveJSON">save</button>
+  	<button class="uk-button" id="print">print</button>
+  	<button class="uk-button" id="search">search</button>
+  	<button class="uk-button" id="undo">undo</button>
+  	</div> 
+    <div class="control-container toolbar">
+      <div class="pointer active">
+        <span class="pointer icon"></span>
+      </div>
+      <div class="pans">
+        <span class="pans icon"></span>
+      </div>
+      <div class="ruler">
+        <span class="ruler icon"></span>
+      </div>
+      <div class="zoom-pointer">
+        <span class="zoom-pointer icon"></span>
+      </div>
       <div class="zoom uk-vertical-align">
-        <span class="uk-vertical-align-middle">Zoom: </span>
+        <span class="uk-vertical-align-middle">Zoom </span>
         <input type="range" min="10" max="500" step="10" class="zoom-slider uk-form-width-small uk-vertical-align-middle" value="100" name="zoom_slider" oninput="zoom_change(event)" />
         <input type="text" name="zoom_value" class="zoom-value uk-form-width-mini uk-vertical-align-middle" value="100" />
       </div>
-			<div>
-				<div class="control-container">
-					<a id="saveJSON" href="#">Save</a>
-					<a id="loadJSON" href="#">Load</a>
-				</div>
+		<!-- 	<div class="control-container">
+				<a id="saveJSON" href="#">Save</a>
+				<a id="loadJSON" href="#">Load</a>
+			</div> -->
 
-				<div class="control-container">
-					<textarea id="loadArea"></textarea>
-					<div id="loadJSONdiv"></div>
-				</div>
-				<div class="control-container">
-				</div>
-				<div class="control-container">
-				</div>
+			<div class="control-container uk-hidden">
+				<textarea id="loadArea" style="display:none;"></textarea>
+				<div id="loadJSONdiv"></div>
+			</div>
+			<div class="control-container uk-hidden">
+			</div>
+			<div class="control-container uk-hidden">
 			</div>
     </div>
-    <div class="find-us">
-    	<a class="uk-display-block" href="http://facebook.com/dalton.nyx">Contact me here!</a>
-    	<a class="uk-display-block" href="https://github.com/daltonnyx/canvasFurniture">Find project on Git</a>
-    </div>
-  </div>
-  <div class="canvas-holder uk-width-3-4" id="canvas-holder">
-    <canvas id="tutorial" width="1000" height="600" draggable="true">
 
-    </canvas>
-    	<div class="delete-button object-button"></div>
-    	<div class="rotate-button object-button"></div>
-    	<span class="dimession width-dimession"></span>
-    	<span class="dimession height-dimession"></span>
+	  <div class="canvas-holder" id="canvas-holder">
+	    <canvas id="tutorial" width="718" height="600" draggable="true">
+
+	    </canvas>
+	    	<div class="delete-button object-button"></div>
+	    	<div class="rotate-button object-button"></div>
+	    	<span class="dimession width-dimession"></span>
+	    	<span class="dimession height-dimession"></span>
+		</div>
 	</div>
-</section>
+</main>
 <div class="control-container wall-control uk-border-rounded" style="display:none;">
 			<input name="_i" id="_i" type="hidden" step="1" min="0" />
 			<div class="uk-display-block form-control uk-margin">
@@ -110,12 +702,14 @@
 					<h4 class="product-name">Product Name</h4>
 					<div class="product-dimession">
 						<ul>
-							<li><span>L</span><span>15</span></li>
-							<li><span>D</span><span>15</span></li>
-							<li><span>H</span><span>15</span></li>
+							<li class="x"><span class="value"></span></li>
+							<li class="y"><span class="label">x </span><span class="value"></span></li>
+							<li class="z"><span class="label">x </span><span class="value"></span></li>
 						</ul>
 					</div>
-				</div>
+					<div class="product-area"><span class="label">Diện tích: </span><span class="value"></span></div>
+				  <div class="product-price"><span class="label">Giá (VND): </span><span class="value"></span></div>
+        </div>
 				<div class="control-button uk-width-1-1">
 					<a href="#" class="uk-button button-clone" id="button-clone"></a>
 					<a href="#" class="uk-button button-remove" id="button-remove"></a>
@@ -132,8 +726,34 @@
 
 
 			</div>
+			<div class="floor-controller uk-width-1-3">
+				<div class="color" id="button-color">
+					<span data-color="FF0000" class="color-hex" style="background-color:#FF0000;"></span>
+					<span data-color="00A1FF" class="color-hex" style="background-color:#00A1FF;"></span>
+					<span data-color="E900FF" class="color-hex" style="background-color:#E900FF;"></span>
+				</div>
+			</div>
 		</div>
-		
+		<footer id="main-footer" class="main-footer">
+      <h3 class="footer-title">Nhận thông tin</h3>
+      <div class="footer-seperator"></div>
+      <div class="subscribe">
+        <q>đăng ký để thường xuyên nhận thông tin từ HOMECLICK.VN: các mẫu nội thất và chương trình ưu đãi...</q>
+        <form id="subscribe" method="post" action="#">
+          <input required="required" type="text" value="" placeholder="Name" name="name" id="name" class="name" />
+          <input required="required" type="text" value="" placeholder="Email" name="email" id="email" class="email" />
+          <input type="submit" value="Đăng ký" id="submit" class="submit" />
+        </form>
+        <div class="info">
+          <p>Địa chỉ: 504 Trưng Nữ Vương, Thanh Khê, Đà Nẵng</p>
+          <p>Điện thoại: 05113 777 779 - Fax: 05113 777 779</p>
+          <p>Email: info@homeclick.vn - Facebook: http://facebook.com/homeclick/ - Website: http://homeclick.vn</p>
+        </div>
+      </div>
+      <div class="copyright">
+        <p>Copyright &copy; 2015 Homeclick.vn - Design by: websiteplaza</p>
+      </div>
+    </footer>
 </body>
 
 </html>
