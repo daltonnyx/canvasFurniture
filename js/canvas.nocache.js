@@ -10,7 +10,7 @@ jQuery(document).ready(function($){
   var canvas = new fabric.Canvas('tutorial');
   var canvasObj = $("#tutorial");
   var p,isDragable = false,src,srcW,srcH,srcName,srcImage,srcZdata,srcPrice,srcScale,centerX,centerY,_isInside = false,srcOnWall;
-  const srcMultiple = 20;
+  const srcMultiple = 50;
   var isInside = function(p,obj) {
     if(typeof(p) == 'undefined' || p == null)
       return false;
@@ -111,7 +111,7 @@ jQuery(document).ready(function($){
     // pageX and pageY IN originalEvent but NOT event
     var e = event.originalEvent;
     p = {x:e.pageX,y:e.pageY};
-    if(isInside(p,canvasObj) == true && isDragable)
+    if(isInside(p,canvasObj) == true && isDragable && src != null)
     {
       fabric.loadSVGFromURL(src,function(objects,options){
         var obj = fabric.util.groupSVGElements(objects,options);
@@ -181,6 +181,8 @@ jQuery(document).ready(function($){
       isMoveObject = false;
       isChangeCorner = -1;
       isChangeWall = -1;
+      src = null;
+
       canvas.renderAll();
       if(isPermentsZoom || isPermentPans)
         return;
@@ -198,18 +200,20 @@ jQuery(document).ready(function($){
   });
 
   var loadWallControl = function(e){//Load Wall control
+    if(typeof pWall ==  'undefined')
+      return;
     var f = canvas.getPointer(e),
         m = {x:e.pageX,y:e.pageY},
-        c = onCorner(f,polWall),
-        l = onLineWall(f,polWall);  
+        c = onCorner(f,pWall),
+        l = onLineWall(f,pWall);  
     if(c != -1){
       var control = jQuery(".wall-control");
-      var p = polWall.points[c];
+      var p = pWall.points[c];
       control.css({"display":"block","position":"absolute","left":m.x - 120 + "px","top":m.y - 80 + "px"});
       control.find("#_i").val(c);
       control.find("#_x").val(f.x);
       control.find("#_y").val(f.y);
-      control.find("#floorArea").text((polWall.calcArea() * Math.pow(srcMultiple,2) / 1000000).toFixed(2) + " m2");
+      control.find("#floorArea").text((pWall.calcArea() * Math.pow(20,2) / 1000000).toFixed(2) + " m2");
       control.find("#delete-cor").css("display","block");
       control.find("#add-cor").css("display","none");
       return;
@@ -221,7 +225,7 @@ jQuery(document).ready(function($){
         control.find("#_i").val(l);
         control.find("#_x").val(f.x);
         control.find("#_y").val(f.y);
-        control.find("#floorArea").text((polWall.calcArea() * Math.pow(srcMultiple,2) / 1000000).toFixed(2) + " m2");
+        control.find("#floorArea").text((pWall.calcArea() * Math.pow(srcMultiple,2) / 1000000).toFixed(2) + " m2");
         control.find("#add-cor").css("display","block");
         control.find("#delete-cor").css("display","none");
         return;
@@ -230,17 +234,18 @@ jQuery(document).ready(function($){
     {
       var m = {x:e.pageX,y:e.pageY}, //Load floor control
           control = jQuery(".object-control"),
-          area = (polWall.calcArea() * Math.pow(srcMultiple,2) / 1000000).toFixed(2);
+          area = (pWall.calcArea() * Math.pow(srcMultiple,2) / 1000000).toFixed(2);
       control.css({
       "display":"block",
       "position":"absolute",
       "left":m.x - (control.width() / 2) - 25 + "px",
       "top":m.y - control.height() -15 +  "px"});
       control.addClass('floor-control');
-      control.find("h4.product-name").text(polWall.ProName);
+      control.find("h4.product-name").text(pWall.ProName);
       control.find(".product-area span.value").text(area + "m2");
-      control.find(".product-price .value").text(currencyFormat(area * polWall.floorPrice));
+      control.find(".product-price .value").text(currencyFormat(area * pWall.floorPrice));
     }
+    //pWall = null;
   };
 
   var loadObjectControl = function(e){ //Load Object control
@@ -259,6 +264,8 @@ jQuery(document).ready(function($){
       "position":"absolute",
       "left":f.x - (control.width() / 2) - 25 + container.offset().left + "px",
       "top":f.y - control.height() -15 + container.offset().top + "px"});
+    jQuery(".width-dimession").text((obj.getWidth() * srcMultiple / 1000).toFixed(2) + ' m');
+    jQuery(".height-dimession").text((obj.getHeight() * srcMultiple / 1000).toFixed(2) + ' m');
     updateControl(obj);
     control.removeClass("floor-control");
     if(typeof obj.ProName != 'undefined')
@@ -286,8 +293,6 @@ jQuery(document).ready(function($){
     control.find(".product-dimession li.y .value").text((obj.getHeight() * srcMultiple / 1000).toFixed(2) + ' m');
     if(typeof obj.zData != 'undefined')
       control.find(".product-dimession li.z .value").text(obj.zData / 1000 + ' m');
-    jQuery(".width-dimession").text((obj.getWidth() * srcMultiple / 1000).toFixed(2) + ' m');
-    jQuery(".height-dimession").text((obj.getHeight() * srcMultiple / 1000).toFixed(2) + ' m');
   };
 
   var fx,fy;
@@ -408,10 +413,30 @@ jQuery(document).ready(function($){
 
 
   //Setting wall
-  var wallPoints = [{x:0,y:0},{x:5000 / srcMultiple,y:0},{x:5000 / srcMultiple,y:7000 / srcMultiple},{x:0,y:7000 / srcMultiple}];
-  var polWall = new fabric.LiPolygon(wallPoints,{
-    left: 0,
-    top:0,
+  var wallPoints = [
+  [
+    {x:5000 / 20, y:0},
+    {x:8000 / 20, y:0},
+    {x:8000 / 20, y: 3500 / 20,hide:true},
+    {x:5000 / 20, y: 3500 / 20,hide:true}
+  ],
+  [
+    {x: 5000 / 20,y: 3500 / 20},
+    {x: 8000 / 20,y: 3500 / 20},
+    {x: 8000 / 20,y: 7000 / 20},
+    {x: 5000 / 20,y: 7000 / 20,hide:true},
+    
+  ],
+  [
+    {x:0,y:0},
+    {x:5000 / 20,y:0},
+    {x: 5000 / 20,y: 7000 / 20},
+    //{x:5000 / srcMultiple,y:7000 / srcMultiple},
+    {x:0,y:7000 / 20}
+  ]
+  ];
+  var polWall = new fabric.groupLiPolygon(wallPoints,{
+
     strokeWidth: 10,
     stroke: "#000000",
     strokeLineCap: "square",
@@ -421,7 +446,7 @@ jQuery(document).ready(function($){
     lockMovementX: true,
     lockMovementY: true,
     perPixelTargetFind: true, // I love this part
-    padding: 4294967295 // get the fuck out, border
+   //padding: 4294967295 // get the fuck out, border
   },[5,5,5,5]);
   polWall.ProName = "Sàn";
   polWall.floorPrice = 0;
@@ -444,8 +469,8 @@ jQuery(document).ready(function($){
   };
 
   var onLineWall = function(p,w,k){ //Check on wall line
-    p = w.toLocalPoint(p,'center','center');
-    k = typeof k !== 'undefined' ? k : 5;
+    p = w.toLocalPoint(w.group.toLocalPoint(p,'center','center'),'center','center');
+    k = typeof k !== 'undefined' ? k : 10;
     for(var i = 0; i < w.points.length;i++)
     {
       var p1 = w.points[i];
@@ -458,16 +483,16 @@ jQuery(document).ready(function($){
   };
 
   var onCorner = function(p,w){ //Check on wall corner
-    p = w.toLocalPoint(p,'center','center');
+    p = w.toLocalPoint(w.group.toLocalPoint(p,'center','center'),'center','center');
     for(var i=0; i < w.points.length;i++)
     {
       var p2 = w.points[i];
-      if(p.distanceFrom(p2) < 5)
+      if(p.distanceFrom(p2) < 10)
         return i;
     }
     return -1;
   };
-
+  var pWall;
   var isChangeWall = -1;
   var isChangeCorner = -1;
   canvas.on("mouse:down",function(e) { //Start change Wall
@@ -482,53 +507,60 @@ jQuery(document).ready(function($){
     {
       e = e.e;
       var f = canvas.getPointer(e);
-      var c = onCorner(f,polWall);
+      if(typeof pWall == 'undefined' || pWall == null)
+        pWall = polWall.getActiveObject(f);
+      if(typeof pWall == 'undefined')
+        return;
+      var c = onCorner(f,pWall);
       if(c != -1)
       {
         isChangeCorner = c;
-        fx = polWall.toLocalPoint(f,'center','center').x;
-        fy = polWall.toLocalPoint(f,'center','center').y;
+        fx = pWall.toLocalPoint(f,'center','center').x;
+        fy = pWall.toLocalPoint(f,'center','center').y;
         return;
       }
-      var l = onLineWall({x:f.x,y:f.y},polWall);
+      var l = onLineWall({x:f.x,y:f.y},pWall);
       if(l != -1)
       {
         isChangeWall = l;
-        fx = polWall.toLocalPoint(f,'center','center').x;
-        fy = polWall.toLocalPoint(f,'center','center').y;
+        fx = pWall.toLocalPoint(f,'center','center').x;
+        fy = pWall.toLocalPoint(f,'center','center').y;
       }
     }
   });
   var moX,moY; 
   canvas.on("mouse:move",function(e){ // Change wall line, point position
+    return;
     if(isHold || isPermentPans)
+      return;
+    if(typeof pWall == 'undefined')
       return;
     if(isChangeCorner != -1)
     {
       var i = isChangeCorner;
       e = e.e;
-      moX = polWall.toLocalPoint(canvas.getPointer(e),'center','center').x - fx;
-      moY = polWall.toLocalPoint(canvas.getPointer(e),'center','center').y - fy;
-      fx = polWall.toLocalPoint(canvas.getPointer(e),'center','center').x;
-      fy = polWall.toLocalPoint(canvas.getPointer(e),'center','center').y;
-      polWall.points[i].x += moX;
-      polWall.points[i].y += moY;
+      moX = pWall.toLocalPoint(canvas.getPointer(e),'center','center').x - fx;
+      moY = pWall.toLocalPoint(canvas.getPointer(e),'center','center').y - fy;
+      fx = pWall.toLocalPoint(canvas.getPointer(e),'center','center').x;
+      fy = pWall.toLocalPoint(canvas.getPointer(e),'center','center').y;
+      pWall.points[i].x += moX;
+      pWall.points[i].y += moY;
       return;
     }
     else
     {
       if(isChangeWall == -1)
         return;
-      var i = isChangeWall,j = (i == polWall.points.length - 1) ? 0 : i + 1;
+      var i = isChangeWall,j = (i == pWall.points.length - 1) ? 0 : i + 1;
       e = e.e;
-      moX = polWall.toLocalPoint(canvas.getPointer(e),'center','center').x - fx;
-      moY = polWall.toLocalPoint(canvas.getPointer(e),'center','center').y - fy;
-      fx = polWall.toLocalPoint(canvas.getPointer(e),'center','center').x;
-      fy = polWall.toLocalPoint(canvas.getPointer(e),'center','center').y;
-      polWall.points[i].x += moX;
-      polWall.points[j].x += moX;
-      polWall.points[i].y += moY;
-      polWall.points[j].y += moY;
+      moX = pWall.toLocalPoint(canvas.getPointer(e),'center','center').x - fx;
+      moY = pWall.toLocalPoint(canvas.getPointer(e),'center','center').y - fy;
+      fx = pWall.toLocalPoint(canvas.getPointer(e),'center','center').x;
+      fy = pWall.toLocalPoint(canvas.getPointer(e),'center','center').y;
+      pWall.points[i].x += moX;
+      pWall.points[j].x += moX;
+      pWall.points[i].y += moY;
+      pWall.points[j].y += moY;
     }
   });
 
@@ -536,6 +568,8 @@ jQuery(document).ready(function($){
     cloneOffset = 10;
     var control = jQuery(".object-control");
     control.find("#button-group").addClass('button-group').removeClass('button-ungroup');
+    control.find("#button-group i").addClass('fa-object-group').removeClass('fa-object-ungroup');
+    control.find('#object-color').spectrum('set', e.target.hexCode);
     if(canvas._activeGroup == null)
     {
        control.find("#button-group").css("opacity","0.3");
@@ -543,20 +577,23 @@ jQuery(document).ready(function($){
       {
         control.find("#button-group").css("opacity","1");
         control.find("#button-group").removeClass('button-group').addClass('button-ungroup');
+        control.find("#button-group i").removeClass('fa-object-group').addClass('fa-object-ungroup');
       }
       if(e.target.isLock === false)
       {
-        jQuery(".control-button .uk-button").css("display","inline-block");
-        jQuery('#button-lock').css({
+        jQuery(".control-button a, .control-button .uk-button").css("display","inline-block");
+        control.find('#button-lock').css({
           display: 'inline-block',
         }).addClass('button-lock').removeClass('button-unlock');
+        control.find('#button-lock i').addClass('fa-lock').removeClass('fa-unlock');
       }
       else
       {
-        jQuery(".control-button .uk-button").css("display","none");
-        jQuery('#button-lock').css({
+        jQuery(".control-button a, .control-button .uk-button").css("display","none");
+        control.find('#button-lock').css({
           display: 'inline-block',
         }).removeClass('button-lock').addClass('button-unlock');
+        control.find('#button-lock i').removeClass('fa-lock').addClass('fa-unlock');
       }
       return;
     }
@@ -615,10 +652,10 @@ jQuery(document).ready(function($){
     {
       var px = jQuery(this).parent(".wall-control").find("#_x").val();
       var py = jQuery(this).parent(".wall-control").find("#_y").val();
-      var s = polWall.toLocalPoint({x:px,y:py},'center','center');
+      var s = pWall.toLocalPoint({x:px,y:py},'center','center');
       var lineX = polWall.lineWidths[idx];
-      polWall.lineWidths.splice(idx + 1,0,lineX);
-      polWall.points.splice(idx + 1,0,s);
+      pWall.lineWidths.splice(idx + 1,0,lineX);
+      pWall.points.splice(idx + 1,0,s);
       canvas.renderAll();
       jQuery(this).parent(".wall-control").find("#_i").val(idx + 1);
       jQuery(this).css("display","none");
@@ -662,6 +699,7 @@ jQuery(document).ready(function($){
       canvas.remove(selecteds[i]);
     };
     jQuery(this).removeClass('button-group').addClass('button-ungroup');
+    jQuery(this).find('i').removeClass('fa-object-group').addClass('fa-object-ungroup');
     canvas.add(groups);
     jQuery(this).closest(".object-control").css("display","none");
     jQuery(".object-button").css("display","none");
@@ -693,6 +731,7 @@ jQuery(document).ready(function($){
     };
     canvas.remove(group);
     jQuery(this).addClass('button-group').removeClass('button-ungroup');
+    jQuery(this).find('i').addClass('fa-object-group').removeClass('fa-object-ungroup');
     jQuery(this).closest(".object-control").css("display","none");
     jQuery(".object-button").css("display","none");
     jQuery(".dimession").css("display","none");
@@ -759,26 +798,49 @@ jQuery(document).ready(function($){
     if(cR.isLock === false)
     {
       cR.isLock = true;
-      jQuery(".control-button .uk-button").css("display","none");
+      jQuery(".control-button a,.control-button .uk-button").css("display","none");
       jQuery(this).css({
         display: 'inline-block',
       }).removeClass('button-lock').addClass('button-unlock');
+      jQuery(this).find('i').removeClass('fa-lock').addClass('fa-unlock');
     }
     else
     {
       cR.isLock = false;
-      jQuery(".control-button .uk-button").css("display","inline-block");
+      jQuery(".control-button a,.control-button .uk-button").css("display","inline-block");
       if(typeof cR.pathToFill == 'undefined' || cR.pathToFill.length == 0)
       {
         jQuery("#button-color").css("display","none");
       }
       jQuery(this).addClass('button-lock').removeClass('button-unlock');
+      jQuery(this).find('i').addClass('fa-lock').removeClass('fa-unlock');
     }
     updateControl(cR);
    });
 
-  jQuery(document).on("mousedown",".object-control .color-hex",function(){ //Color-change
-    var hexCode = "#"+jQuery(this).data("color");
+  jQuery(document).on("click",".object-control #button-bring-to-front",function(e){ // bring to front button
+    e.preventDefault();
+    if(canvas._activeGroup != null) // For group
+    {
+        return;
+    }
+    var cR = canvas.getActiveObject();
+    cR.bringForward(true);
+  });
+
+  jQuery(document).on("click",".object-control #button-send-to-back",function(e){ // send to back button
+    e.preventDefault();
+    if(canvas._activeGroup != null) // For group
+    {
+        return;
+    }
+    var cR = canvas.getActiveObject();
+    cR.sendBackwards(true);
+  });
+
+  jQuery(document).on("change",".object-control #object-color",function(){ //Color-change
+    var hexCode = jQuery(this).spectrum('get').toHexString();
+    console.log(hexCode);
     if(canvas._activeGroup != null) //For group
     {
         return;
@@ -793,13 +855,10 @@ jQuery(document).ready(function($){
         c.paths[j].setFill(hexCode);
       }
     }
-    //c.render(canvas.getContext()); Don't render here -> it will be rendered bug
+    c.render(canvas.getContext()); //Don't render here -> it will be rendered bug
   });
 
-  jQuery(document).on("mouseup",".object-control .color-hex",function(){
-    canvas.renderAll(); //Render when mouse release
-  });
-
+ 
   //Delete button
   jQuery(".delete-button").on("click",function(){
     if(canvas._activeGroup != null) // For group
@@ -897,7 +956,7 @@ jQuery(document).ready(function($){
     var oZ = canvas.getActiveObject();
     if(oZ != null)
     {
-      updateControl(oZ);
+        updateControl(oZ);
     }
     canvas.zoomToPoint({x:c.left,y:c.top},z);
   });
@@ -909,6 +968,7 @@ jQuery(document).ready(function($){
   canvas.on("object:moving",function(e){
     var o = e.target;
     e = e.e;
+    
     //console.log(e.offsetX + "-" + e.offsetY);
     p = canvas.getPointer(e);
     var l = o.onLine,m;
@@ -916,19 +976,31 @@ jQuery(document).ready(function($){
 
     if(typeof o.onWall == 'undefined')
       return;
+    pWalltmp = polWall.getActiveObject(canvas.getPointer(e));
+    if(typeof(pWalltmp) != 'undefined' && pWalltmp != null)
+    {
+      pWall = pWalltmp;
+    }
+
+    if(typeof pWall == 'undefined' || pWall == null)
+      return;
     if(typeof o.onLine != 'undefined')
     {
-      m = (l == polWall.points.length - 1) ? 0 : l + 1;
-      if(typeof polWall.points[m].byPassLines != 'undefined')
+      m = (l == pWall.points.length - 1) ? 0 : l + 1;
+      if(typeof pWall.points[m].byPassLines != 'undefined')
       {
-        polWall.points[m].byPassLines[idx.toString()] = null;
+        pWall.points[m].byPassLines[idx.toString()] = null;
       }
     }
     var ang = o.getAngle();
-    l = onLineWall(p,polWall,15);
+    l = onLineWall(p,pWall,15);
     if(l == -1)
     {
       o.onLine = l;
+      return;
+    }
+    if(pWall.points[l].hide == true)
+    {
       return;
     }
     if(typeof o.onLine  == 'undefined' || o.onLine == -1)
@@ -938,10 +1010,10 @@ jQuery(document).ready(function($){
       else if(o.isFlipped == true)
         o.isFlipped = false;
     }
-    m = (l == polWall.points.length - 1) ? 0 : l + 1;
+    m = (l == pWall.points.length - 1) ? 0 : l + 1;
     var c = o.getCenterPoint(),
-        p1 = polWall.points[l], p2 = polWall.points[m];
-    c = polWall.toLocalPoint(c,'center','center');
+        p1 = pWall.points[l], p2 = pWall.points[m];
+    c = pWall.toLocalPoint(pWall.group.toLocalPoint(c,'center','center'),'center','center');
     var dc = getDistance(c,p1,p2);
 
     var s = c,a;
@@ -979,14 +1051,14 @@ jQuery(document).ready(function($){
         signoA = (a-oA)?(a-oA)<0?1:-1:-1,
         signA = (a) ? (a < 0) ? 1:-1:-1;
     o.onLine = l;
-    var xx = polWall.toLocalPoint({x:o.left,y:o.top},"center","center");
+    var xx = pWall.toLocalPoint(pWall.group.toLocalPoint({x:o.left,y:o.top},'center','center'),"center","center");
     //Update mouse offset related to object
     canvas._currentTransform.offsetX = oX * Math.cos(fabric.util.degreesToRadians(Math.abs(a - oA))) +
                                       oY * Math.sin(fabric.util.degreesToRadians(Math.abs(a - oA))) * signoA;
     canvas._currentTransform.offsetY = oY * Math.cos(fabric.util.degreesToRadians(Math.abs(a - oA))) -
                                       oX * Math.sin(fabric.util.degreesToRadians(Math.abs(a - oA))) * signoA;
-    if(polWall.doors.indexOf(idx) == -1)
-      polWall.doors.push(idx);
+    if(pWall.doors.indexOf(idx) == -1)
+      pWall.doors.push(idx);
     var otl = new fabric.Point(o.left,o.top),
         otr = new fabric.Point(
           o.left + o.getWidth() * Math.cos(fabric.util.degreesToRadians(Math.abs(a))) +
@@ -994,8 +1066,8 @@ jQuery(document).ready(function($){
           o.top + o.getHeight() * Math.cos(fabric.util.degreesToRadians(Math.abs(a))) -
                   o.getWidth() * Math.sin(fabric.util.degreesToRadians(Math.abs(a))) * signA
         );
-    var ltl = polWall.toLocalPoint(otl,"center","center"),
-        ltr = polWall.toLocalPoint(otr,"center","center");
+    var ltl = pWall.toLocalPoint(pWall.group.toLocalPoint(otl,'center','center'),"center","center"),
+        ltr = pWall.toLocalPoint(pWall.group.toLocalPoint(otr,'center','center'),"center","center");
     var lerpTl = lerp(p1,p2,ltl),
         lerpTr = lerp(p1,p2,ltr);
     var lbsp = new fabric.Point(lerpTl.x,lerpTl.y),
@@ -1003,22 +1075,37 @@ jQuery(document).ready(function($){
     var bypassLine = new fabric.Line();
     bypassLine.x1 = lbsp.x; bypassLine.y1 = lbsp.y;
     bypassLine.x2 = lbep.x; bypassLine.y2 = lbep.y;
-    if(typeof polWall.points[m].byPassLines == 'undefined')
-      polWall.points[m].byPassLines = new Object;
-    polWall.points[m].byPassLines[idx.toString()] = bypassLine;
+    if(typeof pWall.points[m].byPassLines == 'undefined')
+      pWall.points[m].byPassLines = new Object;
+    pWall.points[m].byPassLines[idx.toString()] = bypassLine;
   });
 
   canvas.on("mouse:move",function(e){
     if(isChangeWall == -1 && isChangeCorner == -1)
       return;
-    for (var i = polWall.doors.length - 1; i >= 0; i--) {
-      var idx = polWall.doors[i];
+    //pWall = polWall.getActiveObject(canvas.getPointer(e));
+    if(typeof pWall == 'undefined')
+    {
+      // try
+      // {
+      //   //pWall = polWall.getActiveObject(canvas.getPointer(e));
+      //   if(typeof pWall == 'undefined')
+      //     return;
+      // }
+      // catch(e)
+      // {
+        return;
+      //}
+    }
+    for (var i = pWall.doors.length - 1; i >= 0; i--) {
+      var idx = pWall.doors[i];
       var o = canvas._objects[idx],
           l = o.onLine,
-          m = (l == polWall.points.length - 1) ? 0 : l + 1,
+          m = (l == pWall.points.length - 1) ? 0 : l + 1,
           c = o.getCenterPoint(),
-          p1 = polWall.points[l], p2 = polWall.points[m];
-        c = polWall.toLocalPoint(c,'center','center');
+          p1 = pWall.points[l], p2 = pWall.points[m];
+        c = pWall.toLocalPoint(pWall.group.toLocalPoint(c,'center','center'),'center','center');
+        console.log(e + ',' + o + ',' + p1 + ',' + p2 + ',' + l + ',' + m + ',' + c + ',' + idx);
         updateDoor(e,o,p1,p2,l,m,c,idx);
     };
   });
@@ -1048,8 +1135,8 @@ jQuery(document).ready(function($){
         var sP = lerp(p1,p2,s),
             cM = canvas.getPointer(e),
             iM = (isChangeWall == -1) ? isChangeCorner : isChangeWall,
-            iN = (iM == 0) ? polWall.points.length - 1 : iM - 1,
-            iO = (isChangeWall == -1) ? -1 : (iM == polWall.points.length - 1) ? 0 : iM + 1;
+            iN = (iM == 0) ? pWall.points.length - 1 : iM - 1,
+            iO = (isChangeWall == -1) ? -1 : (iM == pWall.points.length - 1) ? 0 : iM + 1;
         o.rotate(a);
         if((l == iM) || (l == iN) || (l == iO))
         {
@@ -1077,8 +1164,8 @@ jQuery(document).ready(function($){
           o.top + o.getHeight() * Math.cos(fabric.util.degreesToRadians(Math.abs(a))) -
                   o.getWidth() * Math.sin(fabric.util.degreesToRadians(Math.abs(a))) * signA
         );
-    var ltl = polWall.toLocalPoint(otl,"center","center"),
-        ltr = polWall.toLocalPoint(otr,"center","center");
+    var ltl = pWall.toLocalPoint(pWall.group.toLocalPoint(otl,'center','center'),"center","center"),
+        ltr = pWall.toLocalPoint(pWall.group.toLocalPoint(otr,'center','center'),"center","center");
         var lerpTl = lerp(p1,p2,ltl),
             lerpTr = lerp(p1,p2,ltr);
         var lbsp = new fabric.Point(lerpTl.x,lerpTl.y),
@@ -1086,9 +1173,9 @@ jQuery(document).ready(function($){
         var bypassLine = new fabric.Line();
         bypassLine.x1 = lbsp.x; bypassLine.y1 = lbsp.y;
         bypassLine.x2 = lbep.x; bypassLine.y2 = lbep.y;
-        if(typeof polWall.points[m].byPassLines == 'undefined')
-          polWall.points[m].byPassLines = new Object;
-        polWall.points[m].byPassLines[idx.toString()] = bypassLine;
+        if(typeof pWall.points[m].byPassLines == 'undefined')
+          pWall.points[m].byPassLines = new Object;
+        pWall.points[m].byPassLines[idx.toString()] = bypassLine;
   }
 
   var lerp = function(pt1,pt2,pt)
@@ -1104,10 +1191,13 @@ jQuery(document).ready(function($){
 
   canvas.on("mouse:up",function(e){
     var o;
-    for (var i = polWall.doors.length - 1; i >= 0; i--) {
-      o = canvas._objects[polWall.doors[i]];
+    if(typeof pWall == 'undefined' || pWall == null)
+      return;
+    for (var i = pWall.doors.length - 1; i >= 0; i--) {
+      o = canvas._objects[pWall.doors[i]];
       o.setCoords();
-    }; 
+    };
+    pWall = null; 
     canvas.renderAll();
   });
   ////////////////////////////////////////////////////////////////////////////
@@ -1118,27 +1208,50 @@ jQuery(document).ready(function($){
   /////////////////            Begin floor section          //////////////////
   ////////////////////////////////////////////////////////////////////////////
 
-  $("body").on("click",'.pattern-filter span',function(e){
-      var img = $(this).find("img");
-      var price = $(img).data('price'),
-          area = (polWall.calcArea() * Math.pow(srcMultiple,2) / 1000000).toFixed(2);
-      if($(img).data('pattern')){
-      var src = $(img).data('pattern');
+    var pattern = null, floorPrice = 0,isFillPattern = false;
+
+   $(document).on("mousedown","*[data-pattern]",function(event){
+    pattern = $(this).data('pattern');
+    floorPrice = $(this).data('price');
+    isFillPattern = true;
+   });
+
+  $("html").on("drop", function(e){
+      e.preventDefault();
+      if(!isFillPattern)
+        return;
+      pWall = polWall.getActiveObject(canvas.getPointer(e.originalEvent));
+      if(typeof(pWall) == 'undefined')
+        return;
+      var price = floorPrice,
+          area = (pWall.calcArea() * Math.pow(srcMultiple,2) / 1000000).toFixed(2);
+      if(pattern){
+      var src = pattern;
         fabric.Image.fromURL(src,function(img){
           img.scaleToWidth(64);
-          polWall.fillPattern(img);
+          pWall.fillPattern(img);
           canvas.renderAll();
         });
       }
-      else if($(img).data('color'))
-      {
-        var color = $(img).data('color');
-        polWall.setFill(color);
-        canvas.renderAll();
-      }
-      polWall.floorPrice = price;
-      jQuery(".object-control").find(".product-price .value").text(currencyFormat(area * polWall.floorPrice));
+      // else if($(img).data('color'))
+      // {
+      //   var color = $(img).data('color');
+      //   pWall.setFill(color);
+      //   canvas.renderAll();
+      // }
+      pWall.floorPrice = price;
+      jQuery(".object-control").find(".product-price .value").text(currencyFormat(area * pWall.floorPrice));
   });
+
+  canvas.on('mouse:up',function(){
+    pattern = null;
+    floorPrice = 0;
+    isFillPattern = false;
+  });
+
+  ////////////////////////////////////////////////////////////////////////////
+  /////////////////             End floor section           //////////////////
+  ////////////////////////////////////////////////////////////////////////////
 
 });
 
@@ -1233,23 +1346,27 @@ var updateControl = function(o) { //Update corner control
       "left": o.oCoords.tr.x - 8 + container.offset().left + "px",
       "top":  o.oCoords.tr.y - 8 + container.offset().top + "px"
   });
-  var dOffsetY = (o.oCoords.mt.y > o.getCenterPoint().y) ? 0 : -20,
-      dOffsetX = (o.oCoords.mt.x >= o.getCenterPoint().x) ? -16 : - 30;
+  var radAngle = fabric.util.degreesToRadians(o.getAngle());
+  var dOffsetY = -18;//17 * Math.cos(Math.PI / 2 - radAngle) - 17 * Math.sin(Math.PI / 2 - radAngle),
+      dOffsetX = (dimession_width.width() / (-2));//17 * Math.sin(radAngle) - 17 * Math.cos(radAngle);
   dimession_width.css({
       "display": 'block',
       "left": o.oCoords.mt.x + dOffsetX + container.offset().left + "px",
       "top" : o.oCoords.mt.y + dOffsetY + container.offset().top + "px",
       "transform" : "rotate("+o.getAngle()+"deg)",
-      "font-size" : 12 * o.canvas.getZoom() + "px"
+      //"font-size" : 12 * o.canvas.getZoom() + "px",
+      "transform-origin": "center 18px"
   });
-  var hOffsetY = (o.oCoords.mr.y > o.getCenterPoint().y) ? -5 : -20,
-      hOffsetX = (o.oCoords.mr.x >= o.getCenterPoint().x) ? -15 : -34;
+  var hOffsetY = -18,
+      hOffsetX = (-1) * dimession_height.width() / 2;
   dimession_height.css({
       "display": 'block',
       "left": o.oCoords.mr.x + hOffsetX + container.offset().left + "px",
       "top" : o.oCoords.mr.y + hOffsetY + container.offset().top + "px",
       "transform" : "rotate("+ (o.getAngle() + 90) +"deg)",
-      "font-size" : 12 * o.canvas.getZoom() + "px"
+      //"font-size" : 12 * o.canvas.getZoom() + "px",
+      "transform-origin": "center 18px"
+      
   });
    if(o.isLock == true)
   {

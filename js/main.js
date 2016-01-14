@@ -35,4 +35,10 @@ jQuery(document).ready(function($) {
 
 		/* Act on the event */
 	});
+
+	$('input[type="color"]').spectrum({
+		showInput: true,
+		allowEmpty: true,
+	});
+	
 });

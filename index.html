@@ -5,25 +5,12 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 	<title>Canvas</title>
-  <script src="js/jquery-1.11.3.min.js" type="text/javascript">
-  </script>
-  <script src="js/fabric.min.js" type="text/javascript">
-  </script>
-  <script src="js/canvas.nocache.js" type="text/javascript">
-  </script>
-  <script src="js/jquery-ui.js" type="text/javascript">
-  </script>
-	<script src="lib/lipolygon.class.js" type="text/javascript">
-	</script>
-	<script src="js/uikit.min.js" type="text/javascript">
-	</script>
-	<script src="js/components/notify.min.js" type="text/javascript">
-	</script>
-  <script src="js/main.js" type="text/javascript">
-  </script>
 	<link type="text/css" rel="stylesheet" href="css/uikit.min.css" />
 	<link type="text/css" rel="stylesheet" href="css/components/notify.min.css" />
 	<link type="text/css" rel="stylesheet" href="css/theme.css" />
+  <link rel="stylesheet" type="text/css" href="css/spectrum.css" />
+  <link rel="stylesheet" type="text/css" href="css/font-awesome.min.css" />
+  <link rel="stylesheet" type="text/css" href="css/front-to-back.css" />
 <style>
 </style>
 </head>
@@ -711,17 +698,21 @@
 				  <div class="product-price"><span class="label">Giá (VND): </span><span class="value"></span></div>
         </div>
 				<div class="control-button uk-width-1-1">
-					<a href="#" class="uk-button button-clone" id="button-clone"></a>
-					<a href="#" class="uk-button button-remove" id="button-remove"></a>
-					<a href="#" class="uk-button button-group" id="button-group"></a>
-					<a href="#" class="uk-button button-rotate-right" id="button-rotate-right"></a>
-					<a href="#" class="uk-button button-rotate-left" id="button-rotate-left"></a>
+					<a href="#" id="button-clone"><i class="fa fa-clone"></i></a>
+					<a href="#" id="button-remove"><i class="fa fa-trash-o"></i></a>
+					<a href="#" id="button-group"><i class="fa fa-object-group"></i></a>
+					<a href="#" id="button-rotate-right"><i class="fa fa-rotate-right"></i></a>
+					<a href="#" id="button-rotate-left"><i class="fa fa-rotate-left"></i></a>
+          <a href="#" id="button-bring-to-front"><i class="fa icon-bring-front"></i></a>
+          <a href="#" id="button-send-to-back"><i class="fa icon-send-back"></i></a>
 					<div class="uk-button button-color" id="button-color">
-						<span data-color="FF0000" class="color-hex" style="background-color:#FF0000;"></span>
+            <input type="color" id="object-color" name="object_color" value="#ffffff" />
+						<!-- <span data-color="FF0000" class="color-hex" style="background-color:#FF0000;"></span>
 						<span data-color="00A1FF" class="color-hex" style="background-color:#00A1FF;"></span>
-						<span data-color="E900FF" class="color-hex" style="background-color:#E900FF;"></span>
+						<span data-color="E900FF" class="color-hex" style="background-color:#E900FF;"></span> -->
 					</div>
-					<a href="#" class="uk-button button-lock" id="button-lock"></a>
+					<a href="#" id="button-lock"><i class="fa fa-lock"></i></a>
+          
 				</div>
 
 
@@ -754,6 +745,26 @@
         <p>Copyright &copy; 2015 Homeclick.vn - Design by: websiteplaza</p>
       </div>
     </footer>
+
+    <script src="js/jquery-1.11.3.min.js" type="text/javascript">
+  </script>
+  <script src="js/fabric.min.js" type="text/javascript">
+  </script>
+  <script src="js/canvas.nocache.js" type="text/javascript">
+  </script>
+  <script src="js/jquery-ui.js" type="text/javascript">
+  </script>
+  <script src="lib/lipolygon.class.js" type="text/javascript">
+  </script>
+  <script src="lib/groupLiPolygon.js" type="text/javascript">
+  </script>
+  <script src="js/uikit.min.js" type="text/javascript">
+  </script>
+  <script src="js/components/notify.min.js" type="text/javascript">
+  </script>
+  <script src="js/main.js" type="text/javascript">
+  </script>
+  <script src="js/spectrum.js" type="text/javascript"></script>
 </body>
 
 </html>
