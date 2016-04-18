@@ -16,7 +16,7 @@ jQuery(document).ready(function($) {
 				break;
 		}
 		$.ajax({
-			url: '/canvasFurniture' + url,
+			url: '/canvas' + url,
 			type: 'GET',
 			dataType: 'html',
 			data: {},

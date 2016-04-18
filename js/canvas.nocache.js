@@ -174,20 +174,11 @@ jQuery(document).ready(function($){
   // Pans control
   var isHold = false,isMoveObject = false,isPermentPans = false;
   canvas.on("mouse:up",function(e){//Mouse up event
-    // Reset check state - No need to check condition
-      isHold = false;
-      canvas.setCursor('default');
-       canvas.selection = true;
-      isMoveObject = false;
-      isChangeCorner = -1;
-      isChangeWall = -1;
-      src = null;
-
-      canvas.renderAll();
-      if(isPermentsZoom || isPermentPans)
+    
+      if(isPermentsZoom || isPermentPans || isDrawMode)
         return;
     //If pointer still in point area then load control
-    if(this.findTarget(e.e) == polWall){
+    if(typeof this.findTarget(e.e) == 'groupLiPolygon'){
       e = e.e;
       loadWallControl(e);
     }
@@ -199,6 +190,19 @@ jQuery(document).ready(function($){
 
   });
 
+  jQuery(document).on('mouseup',function(e){
+    // Reset check state - No need to check condition
+     isHold = false;
+      canvas.setCursor('default');
+       canvas.selection = true;
+      isMoveObject = false;
+      isChangeCorner = -1;
+      isChangeWall = -1;
+      affecteds = [];
+      src = null;
+
+      canvas.renderAll();
+    });
   var loadWallControl = function(e){//Load Wall control
     if(typeof pWall ==  'undefined')
       return;
@@ -253,7 +257,8 @@ jQuery(document).ready(function($){
         m = {x:e.pageX,y:e.pageY},
         control = jQuery(".object-control"),
         container = jQuery("#tutorial"),
-        f = getTopPoint(obj);
+        f = {x:e.pageX,y:e.pageY};
+    //console.log(e);
     //Reset everything
     control.find("h4.product-name").text("No Name");
     control.find(".product-image").html('');
@@ -262,8 +267,8 @@ jQuery(document).ready(function($){
     control.css({
       "display":"block",
       "position":"absolute",
-      "left":f.x - (control.width() / 2) - 25 + container.offset().left + "px",
-      "top":f.y - control.height() -15 + container.offset().top + "px"});
+      "left":f.x - control.width() / 2   + "px",
+      "top":f.y - control.height() -65  + "px"});
     jQuery(".width-dimession").text((obj.getWidth() * srcMultiple / 1000).toFixed(2) + ' m');
     jQuery(".height-dimession").text((obj.getHeight() * srcMultiple / 1000).toFixed(2) + ' m');
     updateControl(obj);
@@ -298,7 +303,7 @@ jQuery(document).ready(function($){
   var fx,fy;
   canvas.on("mouse:down",function(e){ //Change canvas state
     e = e.e; //Replace event object with originalEvent
-    if(isPermentsZoom == true)
+    if(isPermentsZoom == true || isDrawMode)
       return;
     if(this.findTarget(e))
     {
@@ -323,6 +328,50 @@ jQuery(document).ready(function($){
   document.onkeyup = function(e){
     charCode = null;
   }
+
+
+ //   //Setting wall
+ //  var wallPoints = [
+ //  [
+ //    {x:5000 / 20, y:0},
+ //    {x:8000 / 20, y:0},
+ //    {x:8000 / 20, y: 3500 / 20,hide:true},
+ //    {x:5000 / 20, y: 3500 / 20,hide:true}
+ //  ],
+ //  [
+ //    {x: 5000 / 20,y: 3500 / 20},
+ //    {x: 8000 / 20,y: 3500 / 20},
+ //    {x: 8000 / 20,y: 7000 / 20},
+ //    {x: 5000 / 20,y: 7000 / 20,hide:true},
+    
+ //  ],
+ //  [
+ //    {x:0,y:0},
+ //    {x:5000 / 20,y:0},
+ //    {x:5000 / 20,y: 3500 /20},
+ //    {x: 5000 / 20,y: 7000 / 20},
+ //    //{x:5000 / srcMultiple,y:7000 / srcMultiple},
+ //    {x:0,y:7000 / 20}
+ //  ]
+ //  ];
+  var polWall = new fabric.groupLiPolygon([],{
+
+    strokeWidth: 10,
+    stroke: "#000000",
+    strokeLineCap: "square",
+    fill: "#f1f1f1",
+    hasControls: true,
+    hasBorders: false,
+    lockMovementX: true,
+    lockMovementY: true,
+    perPixelTargetFind: true, // I love this part
+   //padding: 4294967295 // get the fuck out, border
+  },[7,7,7,7]);
+  polWall.ProName = "Sàn";
+  polWall.floorPrice = 0;
+  //polWall.scale(1/srcMultiple);
+ //canvas.centerObject(polWall);
+ canvas.add(polWall);
 
 
   //Pans and wall line interactive
@@ -401,6 +450,7 @@ jQuery(document).ready(function($){
   });
 
   canvas.on('mouse:down',function(event){
+    if(isDrawMode) return;
     if(isPermentsZoom == true){
       var p = canvas.getPointer(event.e);
       if(isreverseZoom)
@@ -410,49 +460,6 @@ jQuery(document).ready(function($){
       canvas.renderAll();
     }
   });
-
-
-  //Setting wall
-  var wallPoints = [
-  [
-    {x:5000 / 20, y:0},
-    {x:8000 / 20, y:0},
-    {x:8000 / 20, y: 3500 / 20,hide:true},
-    {x:5000 / 20, y: 3500 / 20,hide:true}
-  ],
-  [
-    {x: 5000 / 20,y: 3500 / 20},
-    {x: 8000 / 20,y: 3500 / 20},
-    {x: 8000 / 20,y: 7000 / 20},
-    {x: 5000 / 20,y: 7000 / 20,hide:true},
-    
-  ],
-  [
-    {x:0,y:0},
-    {x:5000 / 20,y:0},
-    {x: 5000 / 20,y: 7000 / 20},
-    //{x:5000 / srcMultiple,y:7000 / srcMultiple},
-    {x:0,y:7000 / 20}
-  ]
-  ];
-  var polWall = new fabric.groupLiPolygon(wallPoints,{
-
-    strokeWidth: 10,
-    stroke: "#000000",
-    strokeLineCap: "square",
-    fill: "#f1f1f1",
-    hasControls: true,
-    hasBorders: false,
-    lockMovementX: true,
-    lockMovementY: true,
-    perPixelTargetFind: true, // I love this part
-   //padding: 4294967295 // get the fuck out, border
-  },[5,5,5,5]);
-  polWall.ProName = "Sàn";
-  polWall.floorPrice = 0;
-  //polWall.scale(1/srcMultiple);
- canvas.centerObject(polWall);
- canvas.add(polWall);
 
   var getDistance = function(p0,p1,p2){ //Get point to line distance
     var m = Math.sqrt( Math.pow( p2.y - p1.y, 2 ) + Math.pow( p2.x - p1.x, 2 ) );
@@ -495,15 +502,16 @@ jQuery(document).ready(function($){
   var pWall;
   var isChangeWall = -1;
   var isChangeCorner = -1;
+  var affecteds = [];
   canvas.on("mouse:down",function(e) { //Start change Wall
-    if(isPermentsZoom == true)
+    if(isPermentsZoom == true || isDrawMode)
       return;
     jQuery(".wall-control").css("display","none");
     jQuery(".object-control").css("display","none");
     jQuery(".dimession").css("display","none");
     jQuery(".delete-button").css("display","none");
     jQuery(".rotate-button").css("display","none")
-    if(this.findTarget(e.e) == polWall)
+    if(typeof this.findTarget(e.e) == 'groupLiPolygon')
     {
       e = e.e;
       var f = canvas.getPointer(e);
@@ -517,7 +525,6 @@ jQuery(document).ready(function($){
         isChangeCorner = c;
         fx = pWall.toLocalPoint(f,'center','center').x;
         fy = pWall.toLocalPoint(f,'center','center').y;
-        return;
       }
       var l = onLineWall({x:f.x,y:f.y},pWall);
       if(l != -1)
@@ -526,12 +533,26 @@ jQuery(document).ready(function($){
         fx = pWall.toLocalPoint(f,'center','center').x;
         fy = pWall.toLocalPoint(f,'center','center').y;
       }
+      //Find affected points
+      for (var i = polWall._objects.length - 1; i >= 0; i--) {
+        var affected = polWall._objects[i];
+        if(i == polWall._objects.indexOf(pWall))
+          continue;
+        if(c != 1)
+        {
+          
+        }
+        else if (l != 1)
+        {
+
+        }
+      }
     }
   });
   var moX,moY; 
   canvas.on("mouse:move",function(e){ // Change wall line, point position
-    return;
-    if(isHold || isPermentPans)
+
+    if(isHold || isPermentPans || isDrawMode)
       return;
     if(typeof pWall == 'undefined')
       return;
@@ -545,12 +566,10 @@ jQuery(document).ready(function($){
       fy = pWall.toLocalPoint(canvas.getPointer(e),'center','center').y;
       pWall.points[i].x += moX;
       pWall.points[i].y += moY;
-      return;
     }
-    else
+    else if (isChangeWall != -1)
     {
-      if(isChangeWall == -1)
-        return;
+      
       var i = isChangeWall,j = (i == pWall.points.length - 1) ? 0 : i + 1;
       e = e.e;
       moX = pWall.toLocalPoint(canvas.getPointer(e),'center','center').x - fx;
@@ -561,6 +580,27 @@ jQuery(document).ready(function($){
       pWall.points[j].x += moX;
       pWall.points[i].y += moY;
       pWall.points[j].y += moY;
+    }
+    if(affecteds.length > 0)
+    {
+      for (var i = affecteds.length - 1; i >= 0; i--) {
+        var otherMove = polWall._objects[affecteds[i].index];
+        var corner = (typeof affecteds[i].corner != 'undefined') ? affecteds[i].corner : null;
+        var line = (typeof affecteds[i].wall != 'undefined') ? affecteds[i].wall : null;
+        if(corner != null)
+        {
+          otherMove.points[corner].x += moX;
+          otherMove.points[corner].y += moY;
+        }
+        else if (line != null)
+        {
+          var lineNext = (line == otherMove.points.length - 1) ? 0 : line + 1;
+          otherMove.points[line].x += moX;
+          otherMove.points[lineNext].x += moX;
+          otherMove.points[line].y += moY;
+          otherMove.points[lineNext].y += moY;
+        }
+      }
     }
   });
 
@@ -652,14 +692,19 @@ jQuery(document).ready(function($){
     {
       var px = jQuery(this).parent(".wall-control").find("#_x").val();
       var py = jQuery(this).parent(".wall-control").find("#_y").val();
-      var s = pWall.toLocalPoint({x:px,y:py},'center','center');
-      var lineX = polWall.lineWidths[idx];
+      if(pWall == null)
+      {
+        pWall = pWalltmp;
+      }
+      var s = pWall.toLocalPoint(pWall.group.toLocalPoint({x:px,y:py},'center','center'),'center','center');
+      var lineX = pWall.lineWidths[idx];
       pWall.lineWidths.splice(idx + 1,0,lineX);
       pWall.points.splice(idx + 1,0,s);
       canvas.renderAll();
       jQuery(this).parent(".wall-control").find("#_i").val(idx + 1);
       jQuery(this).css("display","none");
       jQuery(this).parent(".wall-control").find("#delete-cor").css("display","block");
+      pWall = null;
     }
   });
 
@@ -840,7 +885,7 @@ jQuery(document).ready(function($){
 
   jQuery(document).on("change",".object-control #object-color",function(){ //Color-change
     var hexCode = jQuery(this).spectrum('get').toHexString();
-    console.log(hexCode);
+    //console.log(hexCode);
     if(canvas._activeGroup != null) //For group
     {
         return;
@@ -900,7 +945,7 @@ jQuery(document).ready(function($){
   });
   canvas.on("mouse:move",function(e){ // Mouse move event when rotate object
    
-    if(!isRotate)
+    if(!isRotate || isDrawMode)
       return;
     var oR = canvas.getActiveObject();
     if(oR == null)
@@ -930,6 +975,11 @@ jQuery(document).ready(function($){
     rF = rL;
   });
 
+  jQuery(".close-button").on("click",function(e){
+    e.preventDefault();
+    jQuery(this).closest('.object-control').hide(50);
+  });
+
   jQuery(window).on('mousewheel DOMMouseScroll', function(event){ // Mouse wheel event - Only work with window object
     if(event.target.nodeName != 'CANVAS')
       return;
@@ -954,13 +1004,19 @@ jQuery(document).ready(function($){
         z -= 0.05;
     }
     var oZ = canvas.getActiveObject();
+    
+    jQuery('.object-control').hide(50);
+    canvas.zoomToPoint({x:c.left,y:c.top},z);
     if(oZ != null)
     {
         updateControl(oZ);
     }
-    canvas.zoomToPoint({x:c.left,y:c.top},z);
   });
 
+  jQuery(document).on("mouseleave","#canvas-holder",function(e){
+    e.preventDefault();
+    jQuery('.object-control').hide(50);
+  });
 
   ////////////////////////////////////////////////////////////////////////////
   /////////////             Door and window section              /////////////
@@ -968,7 +1024,7 @@ jQuery(document).ready(function($){
   canvas.on("object:moving",function(e){
     var o = e.target;
     e = e.e;
-    
+    var oldpWall = null;
     //console.log(e.offsetX + "-" + e.offsetY);
     p = canvas.getPointer(e);
     var l = o.onLine,m;
@@ -979,6 +1035,8 @@ jQuery(document).ready(function($){
     pWalltmp = polWall.getActiveObject(canvas.getPointer(e));
     if(typeof(pWalltmp) != 'undefined' && pWalltmp != null)
     {
+      if(pWall != pWalltmp)
+       oldpWall = pWall;
       pWall = pWalltmp;
     }
 
@@ -991,6 +1049,11 @@ jQuery(document).ready(function($){
       {
         pWall.points[m].byPassLines[idx.toString()] = null;
       }
+      if(oldpWall != null && typeof oldpWall.points[m].byPassLines != 'undefined')
+      {
+        oldpWall.points[m].byPassLines[idx.toString()] = null;
+      }
+
     }
     var ang = o.getAngle();
     l = onLineWall(p,pWall,15);
@@ -1105,7 +1168,7 @@ jQuery(document).ready(function($){
           c = o.getCenterPoint(),
           p1 = pWall.points[l], p2 = pWall.points[m];
         c = pWall.toLocalPoint(pWall.group.toLocalPoint(c,'center','center'),'center','center');
-        console.log(e + ',' + o + ',' + p1 + ',' + p2 + ',' + l + ',' + m + ',' + c + ',' + idx);
+        //console.log(e + ',' + o + ',' + p1 + ',' + p2 + ',' + l + ',' + m + ',' + c + ',' + idx);
         updateDoor(e,o,p1,p2,l,m,c,idx);
     };
   });
@@ -1137,6 +1200,8 @@ jQuery(document).ready(function($){
             iM = (isChangeWall == -1) ? isChangeCorner : isChangeWall,
             iN = (iM == 0) ? pWall.points.length - 1 : iM - 1,
             iO = (isChangeWall == -1) ? -1 : (iM == pWall.points.length - 1) ? 0 : iM + 1;
+        if(!sP)
+          return;
         o.rotate(a);
         if((l == iM) || (l == iN) || (l == iO))
         {
@@ -1168,6 +1233,8 @@ jQuery(document).ready(function($){
         ltr = pWall.toLocalPoint(pWall.group.toLocalPoint(otr,'center','center'),"center","center");
         var lerpTl = lerp(p1,p2,ltl),
             lerpTr = lerp(p1,p2,ltr);
+        if(!lerpTl || !lerpTr)
+          return;
         var lbsp = new fabric.Point(lerpTl.x,lerpTl.y),
             lbep = new fabric.Point(lerpTr.x,lerpTr.y);
         var bypassLine = new fabric.Line();
@@ -1184,19 +1251,24 @@ jQuery(document).ready(function($){
     var U = ((pt.y - pt1.y) * (pt2.y - pt1.y)) + ((pt.x - pt1.x) * (pt2.x - pt1.x));
     var Udenom = Math.pow(pt2.y - pt1.y, 2) + Math.pow(pt2.x - pt1.x, 2);
     U /= Udenom;
-    r.y = pt1.y + (U * (pt2.y - pt1.y));
     r.x = pt1.x + (U * (pt2.x - pt1.x));
+    r.y = pt1.y + (U * (pt2.y - pt1.y));
+    //console.log(r);
+    if(  (r.x < pt1.x && r.x < pt2.x) || (r.x > pt1.x && r.x > pt2.x) 
+      || (r.y < pt1.y && r.y < pt2.y) || (r.y > pt1.y && r.y > pt2.y) )
+      return false;
     return r;
   }
 
   canvas.on("mouse:up",function(e){
     var o;
-    if(typeof pWall == 'undefined' || pWall == null)
+    if(typeof pWall == 'undefined' || pWall == null || isDrawMode)
       return;
     for (var i = pWall.doors.length - 1; i >= 0; i--) {
       o = canvas._objects[pWall.doors[i]];
       o.setCoords();
     };
+    pWalltmp = pWall;
     pWall = null; 
     canvas.renderAll();
   });
@@ -1218,7 +1290,7 @@ jQuery(document).ready(function($){
 
   $("html").on("drop", function(e){
       e.preventDefault();
-      if(!isFillPattern)
+      if(!isFillPattern || isDragable || pattern == null)
         return;
       pWall = polWall.getActiveObject(canvas.getPointer(e.originalEvent));
       if(typeof(pWall) == 'undefined')
@@ -1241,17 +1313,333 @@ jQuery(document).ready(function($){
       // }
       pWall.floorPrice = price;
       jQuery(".object-control").find(".product-price .value").text(currencyFormat(area * pWall.floorPrice));
-  });
+      pattern = null;
+      floorPrice = 0;
+      isFillPattern = false;
+ });
 
-  canvas.on('mouse:up',function(){
+  jQuery(document).on('mouseup',function(){
     pattern = null;
-    floorPrice = 0;
-    isFillPattern = false;
+      floorPrice = 0;
+      isFillPattern = false;
   });
 
   ////////////////////////////////////////////////////////////////////////////
   /////////////////             End floor section           //////////////////
   ////////////////////////////////////////////////////////////////////////////
+
+
+  ////////////////////////////////////////////////////////////////////////////
+  ////////////////              Drawing Section             //////////////////
+  ////////////////////////////////////////////////////////////////////////////
+
+
+  var isDrawMode = true,
+  isDrawing = false,
+  pointRef = [],
+  interSectpoint = new fabric.Circle({
+    radius: 0,
+    fill: 'rgba(0,0,112,0.6)',
+    stroke: '#333',
+    hasBorders: false,
+    hasControls: false,
+    lockMovementX: true,
+    lockMovementY: true,
+    visible: false,
+    originX: "center",
+    originY: "center",
+  });
+  canvas.add(interSectpoint);
+  polyLine = {};
+  //var FuckingFirstSplice;
+  canvas.on("mouse:up",function(e){
+    
+    if(!isDrawMode) return;
+    if(!isDrawing)
+    { 
+      var firstPoint = {};
+      if(interSectpoint.getVisible()){ // Neu intersectpoint xuat hien thi diem dau tien = intersectpoint
+        firstPoint = {x: interSectpoint.intersectPoint.x,y: interSectpoint.intersectPoint.y};
+        var oIdx = interSectpoint.intersectObject,
+            lIdx = interSectpoint.intersectLine + 1,
+            inPoint = polWall._objects[oIdx].toLocalPoint(polWall.toLocalPoint({x: firstPoint.x + 5,y: firstPoint.y + 5},"center","center"),"center","center");
+        polWall._objects[oIdx].points.splice(lIdx, 0, inPoint);
+        //FuckingFirstSplice = lIdx;
+      }
+      else {
+        firstPoint = canvas.getPointer(e.e);
+      }
+      //console.log(firstPoint); 
+      pointRef.push(firstPoint);
+      polyLine = new fabric.Polyline([
+        {x: firstPoint.x,y:firstPoint.y},
+        {x: firstPoint.x + 5,y:firstPoint.y + 5},
+      ],{
+        stroke: 'red',
+        strokeWidth: 10,
+        fill: 'transparent',
+        strokeLineCap: "round",
+      });
+      canvas.add(polyLine);
+      isDrawing = true;
+      
+    }
+    else
+    {
+      var nextPoint = polyLine.toLocalPoint(canvas.getPointer(e.e));
+      if(nextPoint.x == polyLine.points[polyLine.points.length - 2].x && 
+         nextPoint.y == polyLine.points[polyLine.points.length - 2].y)
+      {
+        isDrawing = false;
+        var defopts = {
+          strokeWidth: 10,
+          stroke: "#000000",
+          strokeLineCap: "round",
+          fill: "#ddd",
+          hasControls: true,
+          hasBorders: false,
+          lockMovementX: true,
+          lockMovementY: true,
+          perPixelTargetFind: true,
+          //originX: "center",
+          //originY: "center",
+        };
+        
+        var newRoom = new fabric.LiPolygon(pointRef, defopts,[7]);
+        newRoom.isClosed = false;
+        polWall.add(newRoom);
+        canvas.renderAll();
+        canvas.remove(polyLine);
+        polyLine = {};
+        pointRef = [];
+        //isDrawMode = false;
+        return;
+      }
+
+      // Find insect point
+      var polWallLocalPr = polWall.getPoints(),
+          firstInsect = null,
+          LocalPointer = polWall.getLocalPointer(e.e);
+      for (var i = 0; i <= polWallLocalPr.length - 1; i++) {
+        var j = (i == polWallLocalPr.length - 1) ? 0 : i + 1;
+         if(pointRef.length > 0 && polWallLocalPr[i].i == polWallLocalPr[j].i)
+         {
+            var LocalpointRef1 = polWall.toLocalPoint(pointRef[pointRef.length - 1],"left","top");
+            var insPoint = line_lineIntersect(LocalpointRef1, LocalPointer, polWallLocalPr[i], polWallLocalPr[j]);
+            if(insPoint && insPoint.x != LocalpointRef1.x && insPoint.y != LocalpointRef1.y)
+            {
+              if(firstInsect == null || pointsDistance(LocalpointRef1,insPoint) < pointsDistance(LocalpointRef1,firstInsect) ) {
+                firstInsect = insPoint;
+                firstInsect.intersectLine = i;
+                firstInsect.intersectObject = polWallLocalPr[i].i;
+              }
+            }
+         }
+      }
+      if(firstInsect == null) {
+        if(interSectpoint.getVisible()) {
+          var insertPoint = {x: interSectpoint.getLeft() - 5,y: interSectpoint.getTop() - 5};
+          canvas.remove(polyLine);
+          polyLine = {};
+          if(interSectpoint.splitPoint)
+          {
+            var dsplitPoint = {x: insertPoint.x,y: insertPoint.y};
+            pointRef.splice(interSectpoint.splitPoint,0,dsplitPoint);
+          }
+          pointRef.push(insertPoint);
+          //pointRef.reverse();
+          interSectpoint.set("visible",false);
+          isDrawing = false;
+          var defopts = {
+            strokeWidth: 10,
+            stroke: "#000000",
+            strokeLineCap: "round",
+            fill: "#ddd",
+            hasControls: true,
+            hasBorders: false,
+            lockMovementX: true,
+            lockMovementY: true,
+            perPixelTargetFind: true,
+            //originX: "center",
+            //originY: "center",
+          };
+          //console.log(pointRef);
+          splicePointRef = [pointRef[pointRef.length - 1]];
+          var firstRpoint = pointRef.pop();
+          for (var i = pointRef.length - 1; i >= 0; i--) {
+            
+            var splicePoint = {x: pointRef[i].x, y: pointRef[i].y};
+              splicePointRef.push(splicePoint);
+            if(pointRef[i].x != firstRpoint.x || pointRef[i].y != firstRpoint.y)
+            {
+              pointRef.pop();
+              i = pointRef.length;
+            }
+            else
+            {
+              var newRoom = new fabric.LiPolygon(splicePointRef, defopts,[7]);  
+              splicePointRef = new Array();
+              splicePointRef.push(pointRef[i]);
+              firstRpoint = pointRef.pop();
+              i = pointRef.length;
+              polWall.add(newRoom);
+              canvas.renderAll();
+            }
+
+          }
+          
+          if(splicePointRef.length > 1) {
+            
+            //console.log(splicePointRef);
+            var lastRoom = new fabric.LiPolygon(splicePointRef, defopts,[7]);
+            lastRoom.set("fill","transparent");  
+            //lastRoom.set("strokeWidth",7);  
+           lastRoom.isClosed = false;
+            polWall.add(lastRoom);
+            canvas.renderAll();
+          }
+          //isDrawMode = false;
+          pointRef = [];
+          return;
+        }
+        else {
+          polyLine.points.push({
+            x: nextPoint.x,
+            y: nextPoint.y
+          });
+          pointRef.push(canvas.getPointer(e.e));   
+        }
+      }
+      else {
+
+        isDrawing = false;
+        pointRef.push({x:firstInsect.x - 5,y:firstInsect.y - 5});
+        pointRef.reverse();
+        //pointRef.pop();   
+        var oIdx2 = firstInsect.intersectObject,
+            lIdx2 = firstInsect.intersectLine + 1,
+            reversePoints = new Array(),
+            defopts = {
+              strokeWidth: 10,
+              stroke: "#000000",
+              strokeLineCap: "round",
+              fill: "#ddd",
+              hasControls: true,
+              hasBorders: false,
+              lockMovementX: true,
+              lockMovementY: true,
+              perPixelTargetFind: true,
+              //originX: "center",
+              //originY: "center",
+            };
+
+        var inPoint2 = polWall._objects[oIdx2].toLocalPoint(polWall.toLocalPoint({x: pointRef[0].x + 5,y:pointRef[0].y + 5},"center","center"),"center","center");
+        polWall._objects[oIdx2].points.splice(lIdx2, 0, inPoint2);
+       
+        if(n < otherPoints.length - 1) {
+          otherPoints = otherPoints.slice(0, n + 1);
+          polWall._objects[oIdx2].points = otherPoints;
+          var newRoom = new fabric.LiPolygon([], defopts,[7]);
+          newRoom.makePoint(reversePoints);
+          console.log(newRoom.points);
+          polWall.add(newRoom);
+        }
+        else
+        {
+
+          var newRoom = new fabric.LiPolygon(pointRef, defopts,[7]);
+          polWall.add(newRoom);
+          polWall._objects[oIdx2].points = reversePoints;
+        }
+        
+        canvas.renderAll();
+        canvas.remove(polyLine);
+        pointRef = [];
+        return;
+      }
+      polyLine.setCoords();
+    }
+    canvas.renderAll();
+  });
+
+  canvas.on("mouse:move",function(e){
+    var pointer = canvas.getPointer(e.e);
+    interSectpoint.set("visible",false);
+    canvas.renderAll();
+    if(polWall._objects.length > 0) //neu polWall co chua doi tuong thi stick voi doi tuong trong polWall bang interSectpoint
+    {
+      var polWallLocalPr = polWall.getPoints(),
+          firstInsect = null,
+          LocalPointer = polWall.getLocalPointer(e.e); 
+      //console.log(polWallLocalPr);
+      for (var i = 0; i < polWallLocalPr.length - 1; i++) {
+        var j = (i == polWallLocalPr.length - 1) ? 0 : i + 1;
+
+         if(getDistance(LocalPointer, polWallLocalPr[i], polWallLocalPr[j]) < 10 
+          && polWallLocalPr[i].i == polWallLocalPr[j].i && pointRef.length == 0) {
+            var lerpP = lerp(polWallLocalPr[i],polWallLocalPr[j],LocalPointer);
+            
+              if(lerpP && isDrawMode){
+                interSectpoint.set("visible",true);
+                interSectpoint.set("left",lerpP.x + 5);
+                interSectpoint.set("top",lerpP.y + 5);
+                interSectpoint.set("radius",10);
+                interSectpoint.intersectLine = i;
+                interSectpoint.intersectObject = polWallLocalPr[i].i;
+                interSectpoint.intersectPoint = lerpP;
+                canvas.renderAll();
+                return;
+              }
+         }
+         if(pointRef.length > 0)
+         {
+            var LocalpointRef1 = polWall.toLocalPoint(pointRef[pointRef.length - 1],"left","top");
+            var insPoint = line_lineIntersect(LocalpointRef1, LocalPointer, polWallLocalPr[i], polWallLocalPr[j]);
+            if(insPoint)
+            {
+              firstInsect = (firstInsect == null || pointsDistance(LocalpointRef1,insPoint) < pointsDistance(LocalpointRef1,firstInsect) ) ? insPoint : firstInsect;
+            }
+         }
+      }
+    }
+    if(!isDrawMode || !isDrawing || typeof polyLine == 'undefined' || polyLine.type != 'polyline') return;
+    
+    //interSectpoint.set("visible",false);
+    var pLinePoints = polyLine.points,
+        lastLine = pLinePoints[pLinePoints.length - 2],
+        pLinePointer = polyLine.getLocalPointer(e.e);
+      for (var i = 0; i <= pLinePoints.length - 4; i++) {
+        var j = i + 1;
+        //console.log(getDistance(pLinePointer, pLinePoints[i], pLinePoints[j]));
+       if(pointRef.length != 0) {
+          var insectPoint = line_lineIntersect(pLinePoints[i],pLinePoints[j],lastLine,pLinePointer);
+            //console.log('ab');
+            if(insectPoint && isDrawMode){ // khong vao duoc day
+              //console.log('ad');
+              interSectpoint.set("visible",true);
+              interSectpoint.set("left",insectPoint.x + 7.5 + polyLine.getLeft());
+              interSectpoint.set("top",insectPoint.y + 7.5 + polyLine.getTop());
+              interSectpoint.set("radius",10);
+              interSectpoint.splitPoint = j;
+              interSectpoint.bringToFront();
+            }
+          canvas.renderAll();
+       }
+    }
+
+    var nextPoint = polyLine.toLocalPoint(pointer);
+    polyLine.points[polyLine.points.length - 1].x = nextPoint.x;
+    polyLine.points[polyLine.points.length - 1].y = nextPoint.y;
+    
+
+    canvas.renderAll();
+  });
+
+
+  ////////////////////////////////////////////////////////////////////////////
+  ////////////////            End drawing Section           //////////////////
+  ////////////////////////////////////////////////////////////////////////////
+
 
 });
 
@@ -1374,6 +1762,26 @@ var updateControl = function(o) { //Update corner control
     delete_button.css("display","none");
     return;
   }
+}
+
+var line_lineIntersect =function(l1, l2, l3, l4){
+  var p = {},
+  x1 = l1.x, y1 = l1.y,
+  x2 = l2.x, y2 = l2.y,
+  x3 = l3.x, y3 = l3.y,
+  x4 = l4.x, y4 = l4.y;
+  p.x = ( (x1*y2 - y1*x2)*(x3 - x4) - (x1 - x2)*(x3*y4 - y3*x4) ) / ( (x1 - x2)*(y3 - y4) - (y1 - y2)*(x3 - x4) );
+  p.y = ( (x1*y2 - y1*x2)*(y3 - y4) - (y1 - y2)*(x3*y4 - y3*x4) ) / ( (x1 - x2)*(y3 - y4) - (y1 - y2)*(x3 - x4) );
+  if( (p.x > x1 && p.x > x2) || (p.x < x1 && p.x < x2) || 
+      (p.y > y1 && p.y > y2) || (p.y < y1 && p.y < y2) ||
+      (p.x > x3 && p.x > x4) || (p.x < x3 && p.x < x4) || 
+      (p.y > y3 && p.y > y4) || (p.y < y3 && p.y < y4) )
+    return false;
+  return p;
+}
+
+var pointsDistance = function(p1,p2){
+  return Math.sqrt( Math.pow(p2.x - p1.x,2) +  Math.pow(p2.y - p1.y,2) );
 }
 
 var minValue = function(array,property) {
